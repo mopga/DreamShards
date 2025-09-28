@@ -1,0 +1,98 @@
+[
+  {
+    "id": "start",
+    "text": "Lister watches the tide of starlight. \"Three shards drift inside the Palace of Fear. Bring them back, and the dream remembers hope.\"",
+    "choices": [
+      {
+        "label": "I'm ready to step inside the palace.",
+        "next": "enter_palace",
+        "setFlags": { "metLister": true }
+      },
+      {
+        "label": "Tell me more about the shards.",
+        "next": "shard_brief"
+      },
+      {
+        "label": "The shards are resonating...",
+        "next": "shard_reflection",
+        "requiresFlags": { "shard1": true }
+      }
+    ]
+  },
+  {
+    "id": "shard_brief",
+    "text": "\"Each shard is a forgotten courage. Hold them close, and the Avatar's mask cracks. Even the companions hear the song.\"",
+    "choices": [
+      {
+        "label": "I'll remember that.",
+        "next": "start"
+      },
+      {
+        "label": "Can they help the companions?",
+        "next": "companion_hint"
+      }
+    ]
+  },
+  {
+    "id": "companion_hint",
+    "text": "\"If you trust them, they answer in harmony. A synchronized skill waits for the brave.\"",
+    "choices": [
+      {
+        "label": "Promise to fight together.",
+        "next": "start",
+        "setFlags": { "unlockCompanionSkill": true }
+      }
+    ]
+  },
+  {
+    "id": "shard_reflection",
+    "text": "Lister traces sigils in the tide. \"I can hear at least one shard in your voice. When all three glow, the Avatar will falter.\"",
+    "choices": [
+      {
+        "label": "I found one shard.",
+        "next": "shard_one_echo",
+        "requiresFlags": { "shard1": true, "shard2": false }
+      },
+      {
+        "label": "Two shards hum in resonance.",
+        "next": "shard_two_echo",
+        "requiresFlags": { "shard1": true, "shard2": true, "shard3": false }
+      },
+      {
+        "label": "All three shards answer each other.",
+        "next": "shard_three_echo",
+        "requiresFlags": { "shard1": true, "shard2": true, "shard3": true }
+      },
+      {
+        "label": "That's enough for now.",
+        "next": "start"
+      }
+    ]
+  },
+  {
+    "id": "shard_one_echo",
+    "text": "\"The first shard softens the Avatar's glare. It will lose one of its masks when you face it.\"",
+    "choices": [
+      { "label": "Return to the surf.", "next": "start" }
+    ]
+  },
+  {
+    "id": "shard_two_echo",
+    "text": "\"With two shards, Fear hesitates. It can no longer shield itself behind ice.\"",
+    "choices": [
+      { "label": "Return to the surf.", "next": "start" }
+    ]
+  },
+  {
+    "id": "shard_three_echo",
+    "text": "\"All three? Then the Avatar's opening blow will falter. I'll weave a protective echo when you face it.\"",
+    "choices": [
+      { "label": "Let the echo follow me.", "next": "start", "setFlags": { "bossOpeningDebuff": true } }
+    ]
+  },
+  {
+    "id": "enter_palace",
+    "text": "\"Follow the ribbon of moonlight. When you return, bring a story.\"",
+    "end": true
+  }
+]

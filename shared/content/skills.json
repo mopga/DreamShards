@@ -1,0 +1,59 @@
+[
+  {
+    "id": "luminous_strike",
+    "name": "Luminous Strike",
+    "costSP": 0,
+    "element": "physical",
+    "power": 1,
+    "targets": "one",
+    "description": "A focused blow that cuts through shadow silhouettes."
+  },
+  {
+    "id": "ember_burst",
+    "name": "Ember Burst",
+    "costSP": 4,
+    "element": "fire",
+    "power": 1.1,
+    "targets": "one",
+    "applies": ["weakened"],
+    "description": "Ignites lingering doubts to leave foes weakened."
+  },
+  {
+    "id": "frost_lattice",
+    "name": "Frost Lattice",
+    "costSP": 5,
+    "element": "ice",
+    "power": 1,
+    "targets": "all",
+    "description": "Crystalline chill binds a group of shadows at once."
+  },
+  {
+    "id": "voltaic_chain",
+    "name": "Voltaic Chain",
+    "costSP": 6,
+    "element": "electric",
+    "power": 1.2,
+    "targets": "one",
+    "applies": ["vulnerable"],
+    "description": "A flash of insight that shocks a single foe open."
+  },
+  {
+    "id": "mind_pierce",
+    "name": "Mind Pierce",
+    "costSP": 8,
+    "element": "psychic",
+    "power": 1.4,
+    "targets": "one",
+    "description": "A concentrated psychic lance that exploits exposed thoughts."
+  },
+  {
+    "id": "twin_resonance",
+    "name": "Twin Resonance",
+    "costSP": 9,
+    "element": "psychic",
+    "power": 1.6,
+    "targets": "all",
+    "applies": ["weakened"],
+    "description": "Synchronized pulse with a trusted companion, rattling all foes."
+  }
+]
