@@ -1,0 +1,50 @@
+Title: "Shards of Dreams"
+
+Genre: 2D RPG with turn-based combat, narrative-driven
+
+Core Concept:
+A surreal, dreamlike RPG where the player explores symbolic dream-palaces inhabited by shadows and distorted avatars of inner fears. The game combines dungeon-crawling in abstract palaces with deep branching dialogues and story scenes. Visual aesthetics should feel mystical, fragmented, and slightly uncanny, as if dreams are breaking into pieces.
+
+Gameplay Features:
+1. Exploration:
+   - 2D movement through palace maps, designed as surreal dungeons full of symbolic elements (floating stairs, broken statues, shifting rooms).
+   - Each palace represents a different archetypal theme (e.g. Pride, Fear, Desire).
+
+2. Combat:
+   - Turn-based system, similar to JRPGs like Persona.
+   - Party-based: the protagonist plus dream-companions.
+   - Enemies are "Shadows" — abstract dark creatures.
+   - Bosses are "Avatars" — giant manifestations of distorted archetypes.
+   - Mechanics: basic attacks, skills (magic/psychic abilities), guarding, exploiting weaknesses, special limit-break style moves.
+
+3. Narrative:
+   - Story unfolds between exploration and battles.
+   - Dialogues with branching choices that affect relationships, story outcomes, and palace progression.
+   - Key NPC: Lister — a mysterious guide on the beach of dreams, who helps explain the meaning of dream fragments.
+   - Collecting "Dream Shards" (special items) unlocks new dialogue options and endings.
+
+4. Progression:
+   - Player collects shards to unlock new palaces and abilities.
+   - Choices in dialogue influence which companions join and how the story unfolds.
+   - Multiple possible endings depending on collected shards and player choices.
+
+Visual & Audio Style:
+- 2D pixel-art or illustrated style.
+- Dreamlike palettes: twilight beaches, glowing symbols on stones, surreal landscapes.
+- UI: clean and mystical, with symbols representing actions (sword, shield, star).
+- Music: ambient, haunting, and layered with subtle motifs that change between palaces.
+
+Technical Requirements:
+- 2D engine (HTML5 compatible).
+- Must support dialogue system with branching choices.
+- Must support turn-based combat with a party system and enemy weaknesses.
+- Save/load functionality.
+- Modular design so new palaces, enemies, and dialogues can be added easily.
+
+Stretch Goals (Optional for MVP):
+- Companion relationship system (friendship/loyalty levels).
+- Animated cutscenes between palaces.
+- Puzzle elements inside palaces.
+
+Overall Mood:
+The game should feel like stepping into a broken dream world where logic bends, choices matter, and the player battles both external shadows and their inner self.
