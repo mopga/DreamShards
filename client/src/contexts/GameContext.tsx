@@ -64,12 +64,25 @@ function gameReducer(state: GameContextState, action: GameAction): GameContextSt
     case 'SET_COMBAT_DATA':
       return { ...state, combatData: action.payload };
     case 'UPDATE_PLAYER':
-      return { ...state, player: { ...state.player, ...action.payload } };
+      const updatedPlayer = Object.assign(state.player, action.payload);
+      return { ...state, player: updatedPlayer };
     case 'LOAD_SAVE_DATA':
+      let loadedPlayer = state.player;
+      if (action.payload.player) {
+        loadedPlayer = new Player();
+        Object.assign(loadedPlayer, action.payload.player);
+      }
+      
+      let loadedInventory = state.inventory;
+      if (action.payload.inventory) {
+        loadedInventory = new Inventory();
+        Object.assign(loadedInventory, action.payload.inventory);
+      }
+      
       return {
         ...state,
-        player: action.payload.player || state.player,
-        inventory: action.payload.inventory || state.inventory,
+        player: loadedPlayer,
+        inventory: loadedInventory,
         currentPalace: action.payload.currentPalace || '',
         currentRoom: action.payload.currentRoom || '',
       };

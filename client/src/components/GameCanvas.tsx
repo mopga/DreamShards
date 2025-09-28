@@ -1,11 +1,24 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { useGame } from '../contexts/GameContext';
 import { GameEngine } from '../game/GameEngine';
+import { dialogues } from '../data/dialogues';
+import { enemies } from '../data/enemies';
+import { Enemy } from '../game/Enemy';
 
 export default function GameCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gameEngineRef = useRef<GameEngine | null>(null);
-  const { gameState, currentPalace, currentRoom } = useGame();
+  const { 
+    gameState, 
+    currentPalace, 
+    currentRoom, 
+    setGameState, 
+    setDialogueData, 
+    setCombatData,
+    inventory,
+    setCurrentPalace,
+    setCurrentRoom
+  } = useGame();
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -14,7 +27,45 @@ export default function GameCanvas() {
 
     // Initialize game engine
     if (!gameEngineRef.current) {
-      gameEngineRef.current = new GameEngine(canvas);
+      const callbacks = {
+        onDialogueStart: (dialogueId: string) => {
+          const dialogue = dialogues[dialogueId as keyof typeof dialogues];
+          if (dialogue) {
+            setDialogueData(dialogue);
+            setGameState('dialogue');
+          }
+        },
+        onCombatStart: (enemyData: any[]) => {
+          const combatEnemies = enemyData.map(enemyInfo => {
+            const enemyTemplate = enemies[enemyInfo.id as keyof typeof enemies];
+            if (enemyTemplate) {
+              return new Enemy({ ...enemyTemplate, level: enemyInfo.level });
+            }
+            return null;
+          }).filter(Boolean);
+          
+          if (combatEnemies.length > 0) {
+            setCombatData({
+              enemies: combatEnemies,
+              allies: [], // Could add companions here
+              currentTurn: 0,
+              phase: 'player_turn'
+            });
+            setGameState('combat');
+          }
+        },
+        onItemCollected: (itemData: any) => {
+          if (itemData.reward?.dreamShards) {
+            inventory.addDreamShards(itemData.reward.dreamShards);
+          }
+          console.log('Item collected:', itemData);
+        },
+        onInteraction: (interaction: any) => {
+          console.log('Game interaction:', interaction);
+        }
+      };
+      
+      gameEngineRef.current = new GameEngine(canvas, callbacks);
       gameEngineRef.current.initialize().then(() => {
         setIsLoading(false);
       });

@@ -38,6 +38,10 @@ export class Palace {
     return this.data.rooms[this.currentRoom] || null;
   }
 
+  getPalaceData(): PalaceData {
+    return this.data;
+  }
+
   canMoveTo(x: number, y: number): boolean {
     const room = this.getCurrentRoom();
     if (!room) return false;

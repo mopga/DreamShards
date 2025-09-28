@@ -1,10 +1,34 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useGame } from '../../contexts/GameContext';
+import { Combat } from '../../game/Combat';
 
 export default function CombatUI() {
-  const { player, combatData, setCombatData, setGameState } = useGame();
+  const { player, combatData, setCombatData, setGameState, inventory } = useGame();
   const [selectedAction, setSelectedAction] = useState<string>('');
   const [selectedTarget, setSelectedTarget] = useState<number>(-1);
+  const combatSystemRef = useRef<Combat | null>(null);
+
+  // Initialize combat system when combat starts
+  useEffect(() => {
+    if (combatData && !combatSystemRef.current) {
+      combatSystemRef.current = new Combat(player, combatData.enemies);
+    }
+  }, [combatData, player]);
+
+  // Update combat data when combat system state changes
+  useEffect(() => {
+    if (combatSystemRef.current) {
+      const newState = combatSystemRef.current.getState();
+      setCombatData(newState);
+      
+      // Check for combat end
+      if (!combatSystemRef.current.isActive()) {
+        setTimeout(() => {
+          endCombat(newState.phase === 'victory');
+        }, 2000);
+      }
+    }
+  }, [combatData]);
 
   if (!combatData) return null;
 
@@ -27,13 +51,40 @@ export default function CombatUI() {
   };
 
   const executeAction = (action: string, target: number) => {
-    // This would typically interact with the combat system
+    if (!combatSystemRef.current) return;
+    
     console.log(`Executing ${action} on target ${target}`);
     
-    // For now, just advance turn
-    const newCombatData = { ...combatData };
-    newCombatData.currentTurn = (currentTurn + 1) % (enemies.length + allies.length + 1);
-    setCombatData(newCombatData);
+    let actionExecuted = false;
+    
+    switch (action) {
+      case 'attack':
+        actionExecuted = combatSystemRef.current.playerAttack(target);
+        break;
+      case 'skill':
+        // For now, use the first available skill
+        if (player.skills.length > 0) {
+          actionExecuted = combatSystemRef.current.playerUseSkill(player.skills[0].id, target);
+        }
+        break;
+      case 'guard':
+        actionExecuted = combatSystemRef.current.playerGuard();
+        break;
+      case 'item':
+        // Use a healing item if available
+        const healingItem = inventory.items.find(item => item.effect?.hp);
+        if (healingItem) {
+          inventory.useItem(healingItem.id, player);
+          actionExecuted = true;
+        }
+        break;
+    }
+    
+    if (actionExecuted) {
+      // Update the combat state
+      const newState = combatSystemRef.current.getState();
+      setCombatData(newState);
+    }
     
     setSelectedAction('');
     setSelectedTarget(-1);
@@ -41,11 +92,27 @@ export default function CombatUI() {
 
   const endCombat = (victory: boolean) => {
     if (victory) {
-      // Award experience and items
-      console.log('Victory!');
+      // Award experience from defeated enemies
+      let totalExp = 0;
+      enemies.forEach((enemy: any) => {
+        if (enemy.currentHp <= 0) {
+          totalExp += enemy.expReward || 10;
+        }
+      });
+      
+      player.gainExp(totalExp);
+      
+      // Award dream shards
+      inventory.addDreamShards(enemies.length);
+      
+      console.log(`Victory! Gained ${totalExp} experience and ${enemies.length} dream shards!`);
     } else {
       console.log('Defeat...');
+      // Could add penalties or different handling for defeat
     }
+    
+    // Clean up combat
+    combatSystemRef.current = null;
     setCombatData(null);
     setGameState('exploration');
   };

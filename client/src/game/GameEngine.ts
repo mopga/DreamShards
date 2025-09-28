@@ -3,6 +3,13 @@ import { Player } from './Player';
 import { Combat } from './Combat';
 import { palaces } from '../data/palaces';
 
+interface GameEngineCallbacks {
+  onInteraction?: (interaction: any) => void;
+  onCombatStart?: (enemies: any[]) => void;
+  onDialogueStart?: (dialogueId: string) => void;
+  onItemCollected?: (item: any) => void;
+}
+
 export class GameEngine {
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
@@ -10,11 +17,13 @@ export class GameEngine {
   private currentPalace: Palace | null = null;
   private keys: Set<string> = new Set();
   private lastTime: number = 0;
+  private callbacks: GameEngineCallbacks = {};
 
-  constructor(canvas: HTMLCanvasElement) {
+  constructor(canvas: HTMLCanvasElement, callbacks: GameEngineCallbacks = {}) {
     this.canvas = canvas;
     this.ctx = canvas.getContext('2d')!;
     this.player = new Player();
+    this.callbacks = callbacks;
     
     this.setupEventListeners();
   }
@@ -114,8 +123,60 @@ export class GameEngine {
 
   handleInteraction(interaction: any) {
     console.log('Interaction:', interaction);
-    // This would trigger events in the game context
-    // For now, just log it
+    
+    if (this.callbacks.onInteraction) {
+      this.callbacks.onInteraction(interaction);
+    }
+    
+    // Handle specific interaction types
+    switch (interaction.type) {
+      case 'npc':
+        if (interaction.data.dialogue && this.callbacks.onDialogueStart) {
+          this.callbacks.onDialogueStart(interaction.data.dialogue);
+        }
+        break;
+        
+      case 'dream_shard':
+        if (this.callbacks.onItemCollected) {
+          this.callbacks.onItemCollected(interaction.data);
+        }
+        break;
+        
+      case 'chest':
+        if (interaction.data.items && this.callbacks.onItemCollected) {
+          interaction.data.items.forEach((item: any) => {
+            this.callbacks.onItemCollected!(item);
+          });
+        }
+        break;
+        
+      case 'exit':
+        // Handle room transitions
+        if (interaction.data.targetRoom) {
+          this.loadRoom(this.currentPalace?.getPalaceData().id || '', interaction.data.targetRoom);
+        }
+        break;
+        
+      default:
+        break;
+    }
+    
+    // Check for enemy encounters
+    if (this.currentPalace) {
+      const room = this.currentPalace.getCurrentRoom();
+      if (room?.enemies) {
+        const nearbyEnemies = room.enemies.filter((enemy: any) => {
+          const distance = Math.sqrt(
+            Math.pow(this.player.x - enemy.x, 2) + Math.pow(this.player.y - enemy.y, 2)
+          );
+          return distance < 50; // Combat trigger radius
+        });
+        
+        if (nearbyEnemies.length > 0 && this.callbacks.onCombatStart) {
+          this.callbacks.onCombatStart(nearbyEnemies);
+        }
+      }
+    }
   }
 
   handleClick(x: number, y: number) {
