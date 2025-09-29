@@ -8,14 +8,16 @@ import { EndingView } from "@/components/EndingView";
 import { loadSnapshot, saveSnapshot, pushSnapshotToServer } from "@/features/save/saveSystem";
 import { IntroSequence } from "@/features/intro/IntroSequence";
 import { HeroNameModal } from "@/features/hero/HeroNameModal";
-import { useLocale, TranslationKey } from "@/state/LocaleContext";
+import { useLocale, TranslationKey, LocaleProvider } from "@/state/LocaleContext";
 import { Save, Upload, Download, Languages } from "lucide-react";
 
 export function App() {
   return (
-    <GameProvider>
-      <DreamShell />
-    </GameProvider>
+    <LocaleProvider>
+      <GameProvider>
+        <DreamShell />
+      </GameProvider>
+    </LocaleProvider>
   );
 }
 
@@ -137,11 +139,5 @@ function ParallaxBackdrop() {
   );
 }
 
-
-
-
-
-
-
-
+export default App;
 
