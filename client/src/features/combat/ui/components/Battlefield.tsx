@@ -19,6 +19,8 @@ export function Battlefield({ state, targeting, onTargetClick, onTargetHover }: 
   const enemies = Object.values(state.entities).filter((entity) => entity.side === "enemy");
 
   const active = state.activeActorId ? state.entities[state.activeActorId] : undefined;
+  const getName = (entity: CombatState["entities"][string]) =>
+    copy.actorNames[entity.actor.id] ?? entity.actor.name;
   const hitTargets = new Set(
     state.lastEvents.filter((event) => event.type === "Hit").map((event) => event.targetId),
   );
@@ -42,6 +44,7 @@ export function Battlefield({ state, targeting, onTargetClick, onTargetHover }: 
               <ActorCard
                 actor={actor}
                 side="ally"
+                displayName={getName(actor)}
                 isActive={state.activeActorId === actor.id}
                 isNext={state.queue[1] === actor.id}
                 isTargetable={targeting.validTargetIds.includes(actor.id)}
@@ -73,6 +76,7 @@ export function Battlefield({ state, targeting, onTargetClick, onTargetHover }: 
               <ActorCard
                 actor={actor}
                 side="enemy"
+                displayName={getName(actor)}
                 isActive={state.activeActorId === actor.id}
                 isNext={state.queue[1] === actor.id}
                 isTargetable={targeting.validTargetIds.includes(actor.id)}
@@ -108,6 +112,7 @@ export function Battlefield({ state, targeting, onTargetClick, onTargetHover }: 
     </section>
   );
 }
+
 
 
 

@@ -22,6 +22,7 @@ export function TurnQueuePanel({ items, entities }: TurnQueuePanelProps) {
           const actor = entry.actor;
           if (!actor) return null;
           const hpPct = Math.max(0, Math.round((actor.currentHP / actor.actor.stats.maxHP) * 100));
+          const displayName = copy.actorNames[actor.actor.id] ?? actor.actor.name;
           return (
             <li
               key={entry.id}
@@ -39,11 +40,11 @@ export function TurnQueuePanel({ items, entities }: TurnQueuePanelProps) {
                   actor.side === "ally" ? "border-emerald-400/70 text-emerald-200" : "border-rose-400/70 text-rose-200"
                 }`}
               >
-                {initials(actor.actor.name)}
+                {initials(displayName)}
               </span>
               <div className="flex-1">
                 <div className="flex items-center justify-between text-xs text-slate-300">
-                  <span className="font-medium text-slate-100">{actor.actor.name}</span>
+                  <span className="font-medium text-slate-100">{displayName}</span>
                   <span className="text-[11px] uppercase tracking-wide text-slate-500">{hpPct}%</span>
                 </div>
                 <div className="mt-1 h-1 rounded-full bg-slate-800/80">
@@ -68,3 +69,4 @@ function initials(name: string) {
     .join("")
     .slice(0, 2);
 }
+

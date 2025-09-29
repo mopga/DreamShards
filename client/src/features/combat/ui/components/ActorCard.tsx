@@ -14,6 +14,7 @@ interface ActorCardProps {
   onHover?: (hovering: boolean) => void;
   side: "ally" | "enemy";
   className?: string;
+  displayName?: string;
 }
 
 export function ActorCard({
@@ -28,11 +29,13 @@ export function ActorCard({
   onHover,
   side,
   className = "",
+  displayName,
 }: ActorCardProps) {
   const Component: any = onSelect ? "button" : "div";
   const hpPct = Math.max(0, Math.round((actor.currentHP / actor.actor.stats.maxHP) * 100));
   const spPct = Math.max(0, Math.round((actor.currentSP / actor.actor.stats.maxSP) * 100));
   const statusList = actor.statuses;
+  const name = displayName ?? actor.actor.name;
   const interactivity = Boolean(onSelect);
   const title = disabledReason ?? actor.actor.name;
 
@@ -67,7 +70,7 @@ export function ActorCard({
             {initials(actor.actor.name)}
           </span>
           <div className="flex flex-col">
-            <span className="text-sm font-semibold text-slate-100">{actor.actor.name}</span>
+            <span className="text-sm font-semibold text-slate-100">{name}</span>
             <span className="text-xs uppercase tracking-wide text-slate-400">
               {side === "ally" ? "Allies" : "Shadows"}
             </span>
@@ -118,3 +121,4 @@ function Progress({ label, percent, tone }: { label: string; percent: number; to
     </div>
   );
 }
+

@@ -4,7 +4,8 @@ import type { Skill } from "@shared/types";
 import { skills as skillsMap } from "@/state/content";
 import { itemCatalog } from "@/state/items";
 import { useCombatCopy } from "../combatI18n";
-import { StarIcon, BagIcon, SwordIcon, ShieldIcon, HourglassIcon } from "../../icons/ActionIcons";
+import { StarIcon, BagIcon, SwordIcon, ShieldIcon, HourglassIcon, BackIcon } from "../../icons/ActionIcons";
+import { elementIconMap } from "../../icons/elementIcons";
 
 interface CommandPanelProps {
   state: CombatState;
@@ -143,14 +144,18 @@ function SkillsPanel({ actor, onBack, onSkill, hoveredSkill, setHoveredSkill }: 
         <button
           type="button"
           onClick={onBack}
-          className="text-xs uppercase tracking-wide text-indigo-300 hover:text-indigo-100"
+          className="flex items-center gap-2 text-xs uppercase tracking-wide text-indigo-300 hover:text-indigo-100"
         >
+          <BackIcon className="h-4 w-4" title={copy.commands.back} />
           {copy.commands.back}
         </button>
       </header>
       <ul className="flex flex-col gap-2">
         {skills.map((skill) => {
           const afford = actor.currentSP >= skill.costSP;
+          const localized = copy.skills[skill.id] ?? { name: skill.name, description: skill.description };
+          const ElementIcon = elementIconMap[skill.element];
+          const elementLabel = copy.elements[skill.element] ?? skill.element;
           return (
             <li key={skill.id}>
               <button
@@ -166,10 +171,13 @@ function SkillsPanel({ actor, onBack, onSkill, hoveredSkill, setHoveredSkill }: 
                 disabled={!afford}
               >
                 <span className="flex items-center justify-between text-sm font-semibold text-indigo-100">
-                  {skill.name}
+                  <span className="flex items-center gap-2">
+                    <ElementIcon className="h-4 w-4" title={elementLabel} />
+                    {localized.name}
+                  </span>
                   <span className="text-xs uppercase tracking-wide text-indigo-200">{skill.costSP} SP</span>
                 </span>
-                <p className="text-xs text-indigo-200/80">{skill.description}</p>
+                <p className="text-xs text-indigo-200/80">{localized.description}</p>
               </button>
             </li>
           );
@@ -194,7 +202,8 @@ function ItemsPanel({ inventory, onBack, onItem }: ItemsPanelProps) {
       <div className="rounded-2xl border border-amber-500/40 bg-amber-950/40 p-4 text-sm text-amber-100">
         <header className="mb-3 flex items-center justify-between">
           <span className="text-xs uppercase tracking-wide text-amber-200">{copy.commands.items}</span>
-          <button type="button" onClick={onBack} className="text-xs uppercase tracking-wide text-amber-200">
+          <button type="button" onClick={onBack} className="flex items-center gap-2 text-xs uppercase tracking-wide text-amber-200">
+            <BackIcon className="h-4 w-4" title={copy.commands.back} />
             {copy.commands.back}
           </button>
         </header>
@@ -207,7 +216,8 @@ function ItemsPanel({ inventory, onBack, onItem }: ItemsPanelProps) {
     <div className="rounded-2xl border border-amber-500/40 bg-amber-950/40 p-4 text-sm text-amber-100">
       <header className="mb-3 flex items-center justify-between">
         <span className="text-xs uppercase tracking-wide text-amber-200">{copy.commands.items}</span>
-        <button type="button" onClick={onBack} className="text-xs uppercase tracking-wide text-amber-200">
+        <button type="button" onClick={onBack} className="flex items-center gap-2 text-xs uppercase tracking-wide text-amber-200">
+          <BackIcon className="h-4 w-4" title={copy.commands.back} />
           {copy.commands.back}
         </button>
       </header>
@@ -234,8 +244,6 @@ function ItemsPanel({ inventory, onBack, onItem }: ItemsPanelProps) {
     </div>
   );
 }
-
-
 
 
 

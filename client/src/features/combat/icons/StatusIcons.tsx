@@ -1,4 +1,14 @@
 ﻿import React from "react";
+import vulnerableIcon from "./svg/broken-shield.svg";
+import weakenedIcon from "./svg/down.svg";
+import guardedIcon from "./svg/up-shield.svg";
+import flameIcon from "./svg/flame.svg";
+import iceIcon from "./svg/ice.svg";
+import boltIcon from "./svg/bolt.svg";
+import mindIcon from "./svg/brain.svg";
+import voidIcon from "./svg/void.svg";
+import slashIcon from "./svg/slash.svg";
+
 import type { CombatStatus } from "../logic/types";
 
 interface IconProps {
@@ -6,34 +16,55 @@ interface IconProps {
   title?: string;
 }
 
-const base = "w-4 h-4";
+const base = "h-4 w-4";
 
-export function BrokenShieldIcon({ className = base, title }: IconProps) {
+function GenericIcon({ src, className = base, title }: IconProps & { src: string }) {
   return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden={!title} role={title ? "img" : "presentation"}>
-      {title ? <title>{title}</title> : null}
-      <path d="M12 3L5 6v6c0 4 2.6 7.3 7 9 4.4-1.7 7-5 7-9V6l-4.5-2 1.5 5-4 3.5L10.5 9 12 3z" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
+    <img
+      src={src}
+      className={className}
+      alt=""
+      role={title ? "img" : undefined}
+      aria-hidden={title ? undefined : true}
+      aria-label={title}
+    />
   );
 }
 
-export function DownIcon({ className = base, title }: IconProps) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden={!title} role={title ? "img" : "presentation"}>
-      {title ? <title>{title}</title> : null}
-      <path d="M12 5v14m0 0L6 13m6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
+export function BrokenShieldIcon(props: IconProps) {
+  return <GenericIcon src={vulnerableIcon} {...props} />;
 }
 
-export function UpShieldIcon({ className = base, title }: IconProps) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden={!title} role={title ? "img" : "presentation"}>
-      {title ? <title>{title}</title> : null}
-      <path d="M12 3l7 3v6c0 4-2.6 7.3-7 9-4.4-1.7-7-5-7-9V6l7-3z" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M9 11l3-3 3 3" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
+export function DownIcon(props: IconProps) {
+  return <GenericIcon src={weakenedIcon} {...props} />;
+}
+
+export function UpShieldIcon(props: IconProps) {
+  return <GenericIcon src={guardedIcon} {...props} />;
+}
+
+export function FlameIcon(props: IconProps) {
+  return <GenericIcon src={flameIcon} {...props} />;
+}
+
+export function IceIcon(props: IconProps) {
+  return <GenericIcon src={iceIcon} {...props} />;
+}
+
+export function BoltIcon(props: IconProps) {
+  return <GenericIcon src={boltIcon} {...props} />;
+}
+
+export function MindIcon(props: IconProps) {
+  return <GenericIcon src={mindIcon} {...props} />;
+}
+
+export function VoidIcon(props: IconProps) {
+  return <GenericIcon src={voidIcon} {...props} />;
+}
+
+export function SlashIcon(props: IconProps) {
+  return <GenericIcon src={slashIcon} {...props} />;
 }
 
 export function statusIcon(status: CombatStatus) {

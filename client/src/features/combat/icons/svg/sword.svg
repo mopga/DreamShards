@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     stroke="currentColor"
+     stroke-width="1.5"
+     fill="none"
+     stroke-linecap="round"
+     stroke-linejoin="round">
+  <!-- лезвие + рукоять -->
+  <path d="M12 4v16" />
+  <!-- перекрестье -->
+  <path d="M9 14h6" />
+  <!-- разделитель между лезвием и рукоятью -->
+  <path d="M10.5 16h3" />
+  <!-- остриё -->
+  <path d="M11 4L12 2l1 2z" fill="currentColor" stroke="none"/>
+</svg>

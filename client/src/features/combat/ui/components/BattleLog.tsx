@@ -38,35 +38,41 @@ export function BattleLog({ events, entities }: BattleLogProps) {
 }
 
 function renderEventLine(event: CombatEvent, entities: CombatState["entities"], copy: ReturnType<typeof useCombatCopy>) {
+  const getName = (entityId: string | undefined) => {
+    if (!entityId) return "";
+    const entity = entities[entityId];
+    if (!entity) return "";
+    return copy.actorNames[entity.actor.id] ?? entity.actor.name;
+  };
   switch (event.type) {
     case "Hit": {
-      const src = entities[event.sourceId]?.actor.name ?? "";
-      const tgt = entities[event.targetId]?.actor.name ?? "";
+      const src = getName(event.sourceId);
+      const tgt = getName(event.targetId);
       return formatTemplate(copy.log.hit, { src, tgt, dmg: event.amount });
     }
     case "WeaknessTriggered": {
-      const src = entities[event.sourceId]?.actor.name ?? "";
+      const src = getName(event.sourceId);
       return formatTemplate(copy.log.weakness, { src });
     }
     case "Guard": {
-      const src = entities[event.sourceId]?.actor.name ?? "";
+      const src = getName(event.sourceId);
       return formatTemplate(copy.log.guard, { src });
     }
     case "Death": {
-      const tgt = entities[event.targetId]?.actor.name ?? "";
+      const tgt = getName(event.targetId);
       return formatTemplate(copy.log.death, { tgt });
     }
     case "Heal": {
-      const src = entities[event.sourceId]?.actor.name ?? "";
-      const tgt = entities[event.targetId]?.actor.name ?? "";
+      const src = getName(event.sourceId);
+      const tgt = getName(event.targetId);
       return formatTemplate(copy.log.heal, { src, tgt, dmg: event.amount });
     }
     case "ItemUsed": {
-      const src = entities[event.sourceId]?.actor.name ?? "";
+      const src = getName(event.sourceId);
       return formatTemplate(copy.log.item, { src, item: event.itemId });
     }
     case "TurnEnded": {
-      const src = entities[event.sourceId]?.actor.name ?? "";
+      const src = getName(event.sourceId);
       return formatTemplate(copy.log.end, { src });
     }
     case "StartRound":
@@ -75,5 +81,6 @@ function renderEventLine(event: CombatEvent, entities: CombatState["entities"], 
       return event.message ?? event.type;
   }
 }
+
 
 
