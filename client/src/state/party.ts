@@ -1,55 +1,38 @@
-import type { Actor } from "@shared/types";
+﻿import type { Actor, ActorBlueprint } from "@shared/types";
+import actorData from "@shared/content/actors.json" assert { type: "json" };
 
-export type PartyMemberId = "dreamer" | "senna" | "io";
+const blueprints = actorData as ActorBlueprint[];
+const blueprintMap = Object.fromEntries(blueprints.map((entry) => [entry.id, entry])) as Record<string, ActorBlueprint>;
+
+export type PartyMemberId = "hero" | "lister";
+
+function resolveStats(id: PartyMemberId) {
+  const blueprint = blueprintMap[id];
+  const stats = blueprint?.baseStats;
+  if (!stats) {
+    throw new Error(`Missing actor blueprint for ${id}`);
+  }
+  return { ...stats };
+}
+
+function resolveName(id: PartyMemberId) {
+  return blueprintMap[id]?.nameKey ?? id;
+}
 
 export const partyActors: Record<PartyMemberId, Actor> = {
-  dreamer: {
-    id: "dreamer",
-    name: "The Dreamer",
-    stats: {
-      maxHP: 120,
-      maxSP: 40,
-      str: 14,
-      mag: 16,
-      def: 10,
-      res: 10,
-      agi: 12,
-      luck: 9,
-    },
+  hero: {
+    id: "hero",
+    name: resolveName("hero"),
+    stats: resolveStats("hero"),
     skills: ["luminous_strike", "voltaic_chain", "mind_pierce"],
     weaknesses: ["ice"],
   },
-  senna: {
-    id: "senna",
-    name: "Senna",
-    stats: {
-      maxHP: 95,
-      maxSP: 36,
-      str: 10,
-      mag: 15,
-      def: 9,
-      res: 11,
-      agi: 13,
-      luck: 11,
-    },
-    skills: ["ember_burst", "frost_lattice"],
+  lister: {
+    id: "lister",
+    name: resolveName("lister"),
+    stats: resolveStats("lister"),
+    skills: ["ember_burst", "frost_lattice", "twin_resonance"],
+    resistances: ["psychic"],
     weaknesses: ["electric"],
-    resistances: ["fire"],
-  },
-  io: {
-    id: "io",
-    name: "Io",
-    stats: {
-      maxHP: 88,
-      maxSP: 34,
-      str: 11,
-      mag: 14,
-      def: 8,
-      res: 12,
-      agi: 14,
-      luck: 10,
-    },
-    skills: ["luminous_strike", "ember_burst", "twin_resonance"],
-    weaknesses: ["physical"],
   },
 };

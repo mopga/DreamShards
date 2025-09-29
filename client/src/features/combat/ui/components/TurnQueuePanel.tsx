@@ -1,8 +1,9 @@
-﻿import React from "react";
+import React from "react";
 import { useCombatCopy } from "../combatI18n";
 import type { CombatState } from "../../logic/types";
 import type { TurnQueueItem } from "../../hooks/useTurnQueue";
 import { ExtraTurnBadge } from "./ExtraTurnBadge";
+import { useHeroName } from "@/state/hooks";
 
 interface TurnQueuePanelProps {
   items: TurnQueueItem[];
@@ -11,6 +12,7 @@ interface TurnQueuePanelProps {
 
 export function TurnQueuePanel({ items, entities }: TurnQueuePanelProps) {
   const copy = useCombatCopy();
+  const heroName = useHeroName();
   return (
     <aside className="rounded-2xl border border-slate-800/80 bg-slate-950/70 p-4 shadow-inner">
       <header className="mb-3 flex items-center justify-between text-xs uppercase tracking-wide text-slate-400">
@@ -22,7 +24,10 @@ export function TurnQueuePanel({ items, entities }: TurnQueuePanelProps) {
           const actor = entry.actor;
           if (!actor) return null;
           const hpPct = Math.max(0, Math.round((actor.currentHP / actor.actor.stats.maxHP) * 100));
-          const displayName = copy.actorNames[actor.actor.id] ?? actor.actor.name;
+          const displayName =
+            actor.actor.id === "hero"
+              ? heroName
+              : copy.actorNames[actor.actor.id] ?? actor.actor.name;
           return (
             <li
               key={entry.id}

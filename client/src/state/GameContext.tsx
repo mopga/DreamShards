@@ -1,5 +1,6 @@
-﻿import React, { createContext, useContext, useMemo, useReducer } from "react";
+import React, { createContext, useContext, useMemo, useReducer } from "react";
 import type { DialogueNode, GameState } from "@shared/types";
+import { isHeroNameValid } from "@shared/selectors";
 import { dialogueBeach, palaceLayout } from "./content";
 import { encounters, type EncounterDefinition } from "./encounters";
 import { partyActors, type PartyMemberId } from "./party";
@@ -62,7 +63,7 @@ function createInitialState(): AppState {
     mode: "menu",
     flags: {},
     shardsCollected: 0,
-    party: ["dreamer", "senna", "io"],
+    party: ["hero", "lister"],
     inventory: [{ id: "dream_tonic", qty: 2 }],
     location: { roomId: palaceLayout.rooms[0]?.id ?? "entry" },
     heroName: "",
@@ -113,10 +114,12 @@ function reducer(state: AppState, action: any): AppState {
     case "COMPLETE_BIRTH_INTRO":
       return { ...state, mode: "naming" };
     case "SET_HERO_NAME": {
+      const submitted = typeof action.payload === "string" ? action.payload.trim() : "";
+      const heroName = submitted && isHeroNameValid(submitted) ? submitted : "";
       const nextFlags = { ...state.flags, heroNamed: true };
       return {
         ...state,
-        heroName: action.payload,
+        heroName,
         flags: nextFlags,
         shardsCollected: countShards(nextFlags),
         mode: "intro_beach",

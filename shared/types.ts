@@ -1,4 +1,4 @@
-export type Element = 'physical' | 'fire' | 'ice' | 'electric' | 'psychic' | 'void';
+﻿export type Element = 'physical' | 'fire' | 'ice' | 'electric' | 'psychic' | 'void';
 
 export interface Skill {
   id: string;
@@ -30,6 +30,12 @@ export interface Actor {
   weaknesses?: Element[];
   resistances?: Element[];
   ai?: 'basic' | 'boss';
+}
+
+export interface ActorBlueprint {
+  id: string;
+  nameKey: string;
+  baseStats: ActorStats;
 }
 
 export interface DialogueNode {

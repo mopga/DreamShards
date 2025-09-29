@@ -1,5 +1,6 @@
-import React, { useMemo } from "react";
+import React from "react";
 import { getDialogueNode, useGame } from "@/state/GameContext";
+import { useHeroName } from "@/state/hooks";
 
 function canShowChoice(
   requires: Record<string, boolean> | undefined,
@@ -19,7 +20,7 @@ function applyHero(text: string, hero: string) {
 
 export function DialogueView() {
   const { state, advanceDialogue } = useGame();
-  const hero = useMemo(() => state.heroName || "Dreamer", [state.heroName]);
+  const hero = useHeroName();
   const session = state.dialogue;
 
   if (!session) {

@@ -1,10 +1,11 @@
-﻿import React from "react";
+import React from "react";
 import type { CombatEvent, CombatState } from "../../logic/types";
 import { useCombatCopy } from "../combatI18n";
 import { formatTemplate } from "../formatters";
 import { ActorCard } from "./ActorCard";
 import type { TargetingState } from "../../hooks/useTargeting";
 import { DamageFloat } from "./DamageFloat";
+import { useHeroName } from "@/state/hooks";
 
 interface BattlefieldProps {
   state: CombatState;
@@ -15,12 +16,17 @@ interface BattlefieldProps {
 
 export function Battlefield({ state, targeting, onTargetClick, onTargetHover }: BattlefieldProps) {
   const copy = useCombatCopy();
+  const heroName = useHeroName();
   const allies = Object.values(state.entities).filter((entity) => entity.side === "ally");
   const enemies = Object.values(state.entities).filter((entity) => entity.side === "enemy");
 
   const active = state.activeActorId ? state.entities[state.activeActorId] : undefined;
-  const getName = (entity: CombatState["entities"][string]) =>
-    copy.actorNames[entity.actor.id] ?? entity.actor.name;
+  const getName = (entity: CombatState["entities"][string]) => {
+    if (entity.actor.id === "hero") {
+      return heroName;
+    }
+    return copy.actorNames[entity.actor.id] ?? entity.actor.name;
+  };
   const hitTargets = new Set(
     state.lastEvents.filter((event) => event.type === "Hit").map((event) => event.targetId),
   );
@@ -106,7 +112,7 @@ export function Battlefield({ state, targeting, onTargetClick, onTargetHover }: 
 
       {active ? (
         <div className="mt-2 rounded-full border border-slate-800/70 bg-slate-900/70 px-4 py-2 text-center text-sm text-slate-200">
-          {formatTemplate(copy.turnOf, { name: active.actor.name })}
+          {formatTemplate(copy.turnOf, { name: getName(active) })}
         </div>
       ) : null}
     </section>

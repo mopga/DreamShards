@@ -1,7 +1,8 @@
-﻿import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import type { CombatEvent, CombatState } from "../../logic/types";
 import { useCombatCopy } from "../combatI18n";
 import { formatTemplate } from "../formatters";
+import { useHeroName } from "@/state/hooks";
 
 interface BattleLogProps {
   events: CombatEvent[];
@@ -10,6 +11,7 @@ interface BattleLogProps {
 
 export function BattleLog({ events, entities }: BattleLogProps) {
   const copy = useCombatCopy();
+  const heroName = useHeroName();
   const containerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -29,7 +31,7 @@ export function BattleLog({ events, entities }: BattleLogProps) {
       >
         {events.map((event) => (
           <p key={event.id} className="mb-1 leading-tight last:mb-0">
-            {renderEventLine(event, entities, copy)}
+            {renderEventLine(event, entities, copy, heroName)}
           </p>
         ))}
       </div>
@@ -37,11 +39,19 @@ export function BattleLog({ events, entities }: BattleLogProps) {
   );
 }
 
-function renderEventLine(event: CombatEvent, entities: CombatState["entities"], copy: ReturnType<typeof useCombatCopy>) {
+function renderEventLine(
+  event: CombatEvent,
+  entities: CombatState["entities"],
+  copy: ReturnType<typeof useCombatCopy>,
+  heroName: string,
+) {
   const getName = (entityId: string | undefined) => {
     if (!entityId) return "";
     const entity = entities[entityId];
     if (!entity) return "";
+    if (entity.actor.id === "hero") {
+      return heroName;
+    }
     return copy.actorNames[entity.actor.id] ?? entity.actor.name;
   };
   switch (event.type) {

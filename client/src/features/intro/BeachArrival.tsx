@@ -1,6 +1,7 @@
-﻿import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useGame } from "@/state/GameContext";
 import { useLocale, getBeachBeats, BeachBeat } from "@/state/LocaleContext";
+import { useHeroName } from "@/state/hooks";
 
 const TYPE_INTERVAL = 40;
 
@@ -10,10 +11,10 @@ function applyHero(text: string, hero: string) {
 }
 
 export function BeachArrival() {
-  const { state, completeBeachIntro } = useGame();
+  const { completeBeachIntro } = useGame();
   const { locale, t } = useLocale();
+  const heroName = useHeroName();
   const beats = useMemo<BeachBeat[]>(() => getBeachBeats(locale), [locale]);
-  const heroName = state.heroName && state.heroName.trim().length > 0 ? state.heroName : t("speakerHero");
 
   const [index, setIndex] = useState(0);
   const [displayed, setDisplayed] = useState("");

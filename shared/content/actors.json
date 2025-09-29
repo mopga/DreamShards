@@ -1,0 +1,30 @@
+﻿[
+  {
+    "id": "hero",
+    "nameKey": "hero.name",
+    "baseStats": {
+      "maxHP": 80,
+      "maxSP": 30,
+      "str": 8,
+      "mag": 6,
+      "def": 6,
+      "res": 6,
+      "agi": 7,
+      "luck": 7
+    }
+  },
+  {
+    "id": "lister",
+    "nameKey": "lister.name",
+    "baseStats": {
+      "maxHP": 70,
+      "maxSP": 40,
+      "str": 5,
+      "mag": 9,
+      "def": 5,
+      "res": 8,
+      "agi": 6,
+      "luck": 7
+    }
+  }
+]

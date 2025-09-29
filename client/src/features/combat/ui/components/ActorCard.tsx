@@ -1,4 +1,4 @@
-﻿import React from "react";
+import React from "react";
 import type { CombatActorState } from "../../logic/types";
 import { StatusTag } from "./StatusTag";
 
@@ -37,7 +37,7 @@ export function ActorCard({
   const statusList = actor.statuses;
   const name = displayName ?? actor.actor.name;
   const interactivity = Boolean(onSelect);
-  const title = disabledReason ?? actor.actor.name;
+  const title = disabledReason ?? name;
 
   return (
     <Component
@@ -67,7 +67,7 @@ export function ActorCard({
               side === "ally" ? "border-emerald-400/70 text-emerald-200" : "border-rose-400/70 text-rose-200"
             } ${isActive ? "animate-bounce-soft" : ""}`}
           >
-            {initials(actor.actor.name)}
+            {initials(name)}
           </span>
           <div className="flex flex-col">
             <span className="text-sm font-semibold text-slate-100">{name}</span>
