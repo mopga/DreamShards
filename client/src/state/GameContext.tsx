@@ -5,7 +5,14 @@ import { encounters, type EncounterDefinition } from "./encounters";
 import { partyActors, type PartyMemberId } from "./party";
 import { itemCatalog } from "./items";
 
-export type GameMode = "menu" | "dialogue" | "exploration" | "combat" | "ending";
+export type GameMode =
+  | "menu"
+  | "intro"
+  | "naming"
+  | "dialogue"
+  | "exploration"
+  | "combat"
+  | "ending";
 
 interface DialogueSession {
   scriptId: "beach";
@@ -30,6 +37,8 @@ export interface CombatResolution {
 interface GameContextValue {
   state: AppState;
   startNewGame(): void;
+  completeIntro(): void;
+  confirmHeroName(name: string): void;
   setMode(mode: GameMode): void;
   openDialogue(session?: DialogueSession): void;
   advanceDialogue(nextId: string, setFlags?: Record<string, boolean>): void;
@@ -44,15 +53,20 @@ interface GameContextValue {
   resetToMenu(): void;
 }
 
-const initialState: AppState = {
-  mode: "menu",
-  flags: {},
-  shardsCollected: 0,
-  party: ["dreamer", "senna", "io"],
-  inventory: [{ id: "dream_tonic", qty: 2 }],
-  location: { roomId: palaceLayout.rooms[0]?.id ?? "entry" },
-  log: [],
-};
+function createInitialState(): AppState {
+  return {
+    mode: "menu",
+    flags: {},
+    shardsCollected: 0,
+    party: ["dreamer", "senna", "io"],
+    inventory: [{ id: "dream_tonic", qty: 2 }],
+    location: { roomId: palaceLayout.rooms[0]?.id ?? "entry" },
+    heroName: "Dreamer",
+    log: [],
+  };
+}
+
+const initialState = createInitialState();
 
 const GameContext = createContext<GameContextValue | undefined>(undefined);
 
@@ -88,12 +102,30 @@ function reducer(state: AppState, action: any): AppState {
   switch (action.type) {
     case "SET_MODE":
       return { ...state, mode: action.payload };
-    case "START_NEW_GAME":
+    case "START_NEW_GAME": {
       return {
-        ...initialState,
-        mode: "dialogue",
-        dialogue: { scriptId: "beach", nodes: dialogueBeach, currentId: "start" },
+        ...createInitialState(),
+        mode: "intro",
+        heroName: "",
       };
+    }
+    case "COMPLETE_INTRO": {
+      const nextFlags = { ...state.flags, introSeen: true };
+      return {
+        ...state,
+        flags: nextFlags,
+        mode: "naming",
+        shardsCollected: countShards(nextFlags),
+      };
+    }
+    case "SET_HERO_NAME": {
+      return {
+        ...state,
+        heroName: action.payload,
+        flags: { ...state.flags, heroNamed: true },
+        shardsCollected: countShards({ ...state.flags, heroNamed: true }),
+      };
+    }
     case "OPEN_DIALOGUE":
       return { ...state, mode: "dialogue", dialogue: action.payload };
     case "ADVANCE_DIALOGUE": {
@@ -210,7 +242,9 @@ function reducer(state: AppState, action: any): AppState {
     case "LOAD_SNAPSHOT": {
       const snapshot = action.payload as AppState;
       return {
+        ...createInitialState(),
         ...snapshot,
+        heroName: snapshot.heroName || "Dreamer",
         dialogue:
           snapshot.mode === "dialogue"
             ? { scriptId: "beach", nodes: dialogueBeach, currentId: snapshot.dialogue?.currentId ?? "start" }
@@ -218,7 +252,7 @@ function reducer(state: AppState, action: any): AppState {
       };
     }
     case "RESET_TO_MENU":
-      return { ...initialState };
+      return createInitialState();
     default:
       return state;
   }
@@ -231,6 +265,14 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     () => ({
       state,
       startNewGame: () => dispatch({ type: "START_NEW_GAME" }),
+      completeIntro: () => dispatch({ type: "COMPLETE_INTRO" }),
+      confirmHeroName: (name) => {
+        dispatch({ type: "SET_HERO_NAME", payload: name });
+        dispatch({
+          type: "OPEN_DIALOGUE",
+          payload: { scriptId: "beach", nodes: dialogueBeach, currentId: "start" },
+        });
+      },
       setMode: (mode) => dispatch({ type: "SET_MODE", payload: mode }),
       openDialogue: (
         session = { scriptId: "beach" as const, nodes: dialogueBeach, currentId: "start" },

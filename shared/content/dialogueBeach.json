@@ -1,7 +1,7 @@
-[
+﻿[
   {
     "id": "start",
-    "text": "Lister watches the tide of starlight. \"Three shards drift inside the Palace of Fear. Bring them back, and the dream remembers hope.\"",
+    "text": "Lister watches the tide of starlight. \"Three shards drift inside the Palace of Fear. Bring them back, {{hero}}, and the dream remembers hope.\"",
     "choices": [
       {
         "label": "I'm ready to step inside the palace.",
@@ -35,7 +35,7 @@
   },
   {
     "id": "companion_hint",
-    "text": "\"If you trust them, they answer in harmony. A synchronized skill waits for the brave.\"",
+    "text": "\"If you trust them, {{hero}}, they answer in harmony. A synchronized skill waits for the brave.\"",
     "choices": [
       {
         "label": "Promise to fight together.",
@@ -46,7 +46,7 @@
   },
   {
     "id": "shard_reflection",
-    "text": "Lister traces sigils in the tide. \"I can hear at least one shard in your voice. When all three glow, the Avatar will falter.\"",
+    "text": "Lister traces sigils in the tide. \"I can hear at least one shard in your voice, {{hero}}. When all three glow, the Avatar will falter.\"",
     "choices": [
       {
         "label": "I found one shard.",
@@ -85,14 +85,14 @@
   },
   {
     "id": "shard_three_echo",
-    "text": "\"All three? Then the Avatar's opening blow will falter. I'll weave a protective echo when you face it.\"",
+    "text": "\"All three? Then the Avatar's opening blow will falter. I'll weave a protective echo when you face it, {{hero}}.\"",
     "choices": [
       { "label": "Let the echo follow me.", "next": "start", "setFlags": { "bossOpeningDebuff": true } }
     ]
   },
   {
     "id": "enter_palace",
-    "text": "\"Follow the ribbon of moonlight. When you return, bring a story.\"",
+    "text": "\"Follow the ribbon of moonlight, {{hero}}. When you return, bring a story.\"",
     "end": true
   }
 ]

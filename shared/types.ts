@@ -61,4 +61,5 @@ export interface GameState {
   party: string[];
   inventory: Array<{ id: string; qty: number }>;
   location: { roomId: string };
+  heroName: string;
 }
