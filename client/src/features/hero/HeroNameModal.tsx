@@ -1,8 +1,8 @@
-import React, { useMemo, useState } from "react";
+Ôªøimport React, { useMemo, useState } from "react";
 import { useGame } from "@/state/GameContext";
 import { useLocale, getRandomNames } from "@/state/LocaleContext";
 
-const NAME_REGEX = /^[A-Za-z¿-ﬂ‡-ˇ®∏\s'\-]{2,16}$/;
+const NAME_REGEX = /^[A-Za-z–ê-–Ø–∞-—è–Å—ë\s'\-]{2,16}$/;
 
 export function HeroNameModal() {
   const { confirmHeroName } = useGame();
@@ -82,3 +82,4 @@ export function HeroNameModal() {
     </div>
   );
 }
+

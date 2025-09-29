@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useMemo, useReducer } from "react";
+﻿import React, { createContext, useContext, useMemo, useReducer } from "react";
 import type { DialogueNode, GameState } from "@shared/types";
 import { dialogueBeach, palaceLayout } from "./content";
 import { encounters, type EncounterDefinition } from "./encounters";
@@ -7,8 +7,10 @@ import { itemCatalog } from "./items";
 
 export type GameMode =
   | "menu"
-  | "intro"
+  | "intro_world"
+  | "intro_birth"
   | "naming"
+  | "intro_beach"
   | "dialogue"
   | "exploration"
   | "combat"
@@ -37,7 +39,9 @@ export interface CombatResolution {
 interface GameContextValue {
   state: AppState;
   startNewGame(): void;
-  completeIntro(): void;
+  completeWorldIntro(): void;
+  completeBirthIntro(): void;
+  completeBeachIntro(): void;
   confirmHeroName(name: string): void;
   setMode(mode: GameMode): void;
   openDialogue(session?: DialogueSession): void;
@@ -61,7 +65,7 @@ function createInitialState(): AppState {
     party: ["dreamer", "senna", "io"],
     inventory: [{ id: "dream_tonic", qty: 2 }],
     location: { roomId: palaceLayout.rooms[0]?.id ?? "entry" },
-    heroName: "Dreamer",
+    heroName: "",
     log: [],
   };
 }
@@ -102,28 +106,31 @@ function reducer(state: AppState, action: any): AppState {
   switch (action.type) {
     case "SET_MODE":
       return { ...state, mode: action.payload };
-    case "START_NEW_GAME": {
+    case "START_NEW_GAME":
+      return { ...createInitialState(), mode: "intro_world" };
+    case "COMPLETE_WORLD_INTRO":
+      return { ...state, mode: "intro_birth" };
+    case "COMPLETE_BIRTH_INTRO":
+      return { ...state, mode: "naming" };
+    case "SET_HERO_NAME": {
+      const nextFlags = { ...state.flags, heroNamed: true };
       return {
-        ...createInitialState(),
-        mode: "intro",
-        heroName: "",
+        ...state,
+        heroName: action.payload,
+        flags: nextFlags,
+        shardsCollected: countShards(nextFlags),
+        mode: "intro_beach",
       };
     }
-    case "COMPLETE_INTRO": {
+    case "COMPLETE_BEACH_INTRO": {
       const nextFlags = { ...state.flags, introSeen: true };
       return {
         ...state,
         flags: nextFlags,
-        mode: "naming",
         shardsCollected: countShards(nextFlags),
-      };
-    }
-    case "SET_HERO_NAME": {
-      return {
-        ...state,
-        heroName: action.payload,
-        flags: { ...state.flags, heroNamed: true },
-        shardsCollected: countShards({ ...state.flags, heroNamed: true }),
+        mode: "dialogue",
+        dialogue: { scriptId: "beach", nodes: dialogueBeach, currentId: "start" },
+        log: [...state.log, "The moonlit shore fades behind you."].slice(-20),
       };
     }
     case "OPEN_DIALOGUE":
@@ -244,7 +251,7 @@ function reducer(state: AppState, action: any): AppState {
       return {
         ...createInitialState(),
         ...snapshot,
-        heroName: snapshot.heroName || "Dreamer",
+        heroName: snapshot.heroName || "",
         dialogue:
           snapshot.mode === "dialogue"
             ? { scriptId: "beach", nodes: dialogueBeach, currentId: snapshot.dialogue?.currentId ?? "start" }
@@ -265,14 +272,10 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     () => ({
       state,
       startNewGame: () => dispatch({ type: "START_NEW_GAME" }),
-      completeIntro: () => dispatch({ type: "COMPLETE_INTRO" }),
-      confirmHeroName: (name) => {
-        dispatch({ type: "SET_HERO_NAME", payload: name });
-        dispatch({
-          type: "OPEN_DIALOGUE",
-          payload: { scriptId: "beach", nodes: dialogueBeach, currentId: "start" },
-        });
-      },
+      completeWorldIntro: () => dispatch({ type: "COMPLETE_WORLD_INTRO" }),
+      completeBirthIntro: () => dispatch({ type: "COMPLETE_BIRTH_INTRO" }),
+      completeBeachIntro: () => dispatch({ type: "COMPLETE_BEACH_INTRO" }),
+      confirmHeroName: (name) => dispatch({ type: "SET_HERO_NAME", payload: name }),
       setMode: (mode) => dispatch({ type: "SET_MODE", payload: mode }),
       openDialogue: (
         session = { scriptId: "beach" as const, nodes: dialogueBeach, currentId: "start" },
@@ -320,3 +323,4 @@ export function getDialogueNode(nodes: DialogueNode[], id: string) {
 export function getItemName(id: string) {
   return itemCatalog[id]?.name ?? id;
 }
+

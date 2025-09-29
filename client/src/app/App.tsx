@@ -6,12 +6,14 @@ import { ExplorationView } from "@/features/exploration/ExplorationView";
 import { CombatView } from "@/features/combat/CombatView";
 import { EndingView } from "@/components/EndingView";
 import { loadSnapshot, saveSnapshot, pushSnapshotToServer } from "@/features/save/saveSystem";
-import { IntroSequence } from "@/features/intro/IntroSequence";
+import { WorldIntro } from "@/features/intro/WorldIntro";
+import { BirthIntro } from "@/features/intro/BirthIntro";
+import { BeachArrival } from "@/features/intro/BeachArrival";
 import { HeroNameModal } from "@/features/hero/HeroNameModal";
-import { useLocale, TranslationKey, LocaleProvider } from "@/state/LocaleContext";
+import { useLocale, LocaleProvider, TranslationKey } from "@/state/LocaleContext";
 import { Save, Upload, Download, Languages } from "lucide-react";
 
-export function App() {
+export default function App() {
   return (
     <LocaleProvider>
       <GameProvider>
@@ -26,13 +28,13 @@ function DreamShell() {
   const { t } = useLocale();
 
   useEffect(() => {
-    if (state.mode === "menu" || state.mode === "intro" || state.mode === "naming") {
+    if (state.mode === "menu" || state.mode === "intro_world" || state.mode === "intro_birth" || state.mode === "intro_beach" || state.mode === "naming") {
       return;
     }
     saveSnapshot(state);
   }, [state]);
 
-  const showTopBar = state.mode !== "intro" && state.mode !== "naming";
+  const showTopBar = !["intro_world", "intro_birth", "intro_beach", "naming"].includes(state.mode);
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-gradient-to-b from-[#030616] via-[#060922] to-[#010109] text-slate-100">
@@ -41,8 +43,10 @@ function DreamShell() {
         {showTopBar && <TopBar />}
         <main className={`mt-6 flex-1 ${showTopBar ? "" : "flex items-center"}`}>
           {state.mode === "menu" && <MainMenu />}
-          {state.mode === "intro" && <IntroSequence />}
+          {state.mode === "intro_world" && <WorldIntro />}
+          {state.mode === "intro_birth" && <BirthIntro />}
           {state.mode === "naming" && <HeroNameModal />}
+          {state.mode === "intro_beach" && <BeachArrival />}
           {state.mode === "dialogue" && <DialogueView />}
           {state.mode === "exploration" && <ExplorationView />}
           {state.mode === "combat" && <CombatView />}
@@ -61,7 +65,7 @@ function DreamShell() {
 function TopBar() {
   const { state, hydrate } = useGame();
   const { t, toggleLocale, locale } = useLocale();
-  const modeKey = `mode_${state.mode}` as TranslationKey;
+  const modeKey = (`mode_${state.mode}`) as TranslationKey;
   const modeLabel = t(modeKey);
   const shardsLabel = t("shardsLabel");
 
@@ -138,6 +142,3 @@ function ParallaxBackdrop() {
     </>
   );
 }
-
-export default App;
-
