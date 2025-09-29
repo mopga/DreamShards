@@ -6,11 +6,18 @@ interface StorySequenceProps {
   onComplete(): void;
   onSkip(): void;
   finalLabelKey?: TranslationKey;
+  renderOverlay?: (ctx: { index: number; isLast: boolean; slide: StorySlide | undefined }) => React.ReactNode;
 }
 
 const TYPE_INTERVAL = 40;
 
-export function StorySequence({ slides, onComplete, onSkip, finalLabelKey }: StorySequenceProps) {
+export function StorySequence({
+  slides,
+  onComplete,
+  onSkip,
+  finalLabelKey,
+  renderOverlay,
+}: StorySequenceProps) {
   const { t } = useLocale();
   const [index, setIndex] = useState(0);
   const [displayed, setDisplayed] = useState("");
@@ -18,7 +25,9 @@ export function StorySequence({ slides, onComplete, onSkip, finalLabelKey }: Sto
 
   const currentSlide = useMemo(() => slides[index], [slides, index]);
   const isLast = index === slides.length - 1;
-  const nextLabel = isLast ? t(finalLabelKey ?? "introContinue") : t("introNext");
+  const finalKey: TranslationKey = finalLabelKey ?? "introContinue";
+  const nextLabel = isLast ? t(finalKey) : t("introNext");
+  const overlay = renderOverlay ? renderOverlay({ index, isLast, slide: currentSlide }) : null;
 
   useEffect(() => {
     setDisplayed("");
@@ -73,6 +82,7 @@ export function StorySequence({ slides, onComplete, onSkip, finalLabelKey }: Sto
             className="h-64 w-full object-cover object-center md:h-80 image-fade"
           />
         )}
+        {overlay}
       </div>
 
       <div className="w-full max-w-3xl rounded-3xl border border-indigo-300/30 bg-slate-950/70 px-6 py-6 shadow-[0_0_50px_rgba(60,90,200,0.25)] backdrop-blur">
