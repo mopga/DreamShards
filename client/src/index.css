@@ -83,3 +83,80 @@ button {
   animation: fadeInSoft 0.6s ease forwards;
 }
 
+@keyframes focusPop {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.03);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.focus-pop {
+  animation: focusPop 0.24s ease;
+}
+
+@keyframes hitShake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-6px);
+  }
+  60% {
+    transform: translateX(4px);
+  }
+}
+
+.hit-shake {
+  animation: hitShake 0.16s ease-in-out;
+}
+
+@keyframes damageFloatUp {
+  0% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-24px);
+  }
+}
+
+.damage-float {
+  animation: damageFloatUp 0.32s ease-out;
+}
+
+@keyframes extraTurnPulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.12);
+    opacity: 1;
+  }
+}
+
+.animate-extra-turn {
+  animation: extraTurnPulse 0.4s ease-in-out infinite;
+}
+
+@keyframes bounceSoft {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+.animate-bounce-soft {
+  animation: bounceSoft 1.2s ease-in-out infinite;
+}
