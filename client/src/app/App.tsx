@@ -1,6 +1,7 @@
 ﻿import React, { useEffect } from "react";
 import { GameProvider, useGame } from "@/state/GameContext";
 import { MainMenu } from "@/components/MainMenu";
+import { SkillUnlockModal } from "@/features/progression/SkillUnlockModal";
 import { DialogueView } from "@/features/dialogue/DialogueView";
 import { ExplorationView } from "@/features/exploration/ExplorationView";
 import { CombatView } from "@/features/combat/CombatView";
@@ -11,6 +12,7 @@ import { BirthIntro } from "@/features/intro/BirthIntro";
 import { BeachArrival } from "@/features/intro/BeachArrival";
 import { HeroNameModal } from "@/features/hero/HeroNameModal";
 import { useLocale, LocaleProvider, TranslationKey } from "@/state/LocaleContext";
+import { progressionLevels } from "@/state/content";
 import { Save, Upload, Download, Languages } from "lucide-react";
 
 export default function App() {
@@ -24,7 +26,7 @@ export default function App() {
 }
 
 function DreamShell() {
-  const { state } = useGame();
+  const { state, acknowledgeSkillUnlock } = useGame();
   const { t } = useLocale();
 
   useEffect(() => {
@@ -35,6 +37,7 @@ function DreamShell() {
   }, [state]);
 
   const showTopBar = !["intro_world", "intro_birth", "intro_beach", "naming"].includes(state.mode);
+  const pendingUnlock = state.skillUnlockQueue?.[0];
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-gradient-to-b from-[#030616] via-[#060922] to-[#010109] text-slate-100">
@@ -58,6 +61,9 @@ function DreamShell() {
           </footer>
         )}
       </div>
+      {pendingUnlock ? (
+        <SkillUnlockModal notification={pendingUnlock} onConfirm={acknowledgeSkillUnlock} />
+      ) : null}
     </div>
   );
 }
@@ -68,6 +74,13 @@ function TopBar() {
   const modeKey = (`mode_${state.mode}`) as TranslationKey;
   const modeLabel = t(modeKey);
   const shardsLabel = t("shardsLabel");
+  const progression = state.progression ?? { level: 1, xp: 0 };
+  const maxLevelIndex = progressionLevels.length - 1;
+  const nextThreshold = progression.level >= maxLevelIndex ? null : progressionLevels[progression.level];
+  const levelLabel = t("levelLabel");
+  const xpLabel = t("xpLabel");
+  const xpDisplay = nextThreshold !== null ? `${progression.xp}/${nextThreshold}` : `${progression.xp}`;
+  const summaryLine = `${modeLabel} | ${state.shardsCollected}/3 ${shardsLabel} | ${levelLabel} ${progression.level} | ${xpDisplay} ${xpLabel}`;
 
   const handleSave = () => {
     saveSnapshot(state);
@@ -93,7 +106,7 @@ function TopBar() {
           </span>
         </div>
         <span className="hidden text-xs uppercase tracking-widest text-slate-400 md:inline">
-          {modeLabel} • {state.shardsCollected}/3 {shardsLabel}
+          {summaryLine}
         </span>
       </div>
       <div className="flex flex-wrap items-center gap-2">
@@ -142,3 +155,14 @@ function ParallaxBackdrop() {
     </>
   );
 }
+
+
+
+
+
+
+
+
+
+
+

@@ -24,15 +24,16 @@ export const partyActors: Record<PartyMemberId, Actor> = {
     id: "hero",
     name: resolveName("hero"),
     stats: resolveStats("hero"),
-    skills: ["luminous_strike", "voltaic_chain", "mind_pierce"],
+    skills: ["luminous_strike", "ember_burst", "mind_pierce", "veil_guard"],
     weaknesses: ["ice"],
   },
   lister: {
     id: "lister",
     name: resolveName("lister"),
     stats: resolveStats("lister"),
-    skills: ["ember_burst", "frost_lattice", "twin_resonance"],
+    skills: ["echo_shield", "lunar_mark", "twin_resonance"],
     resistances: ["psychic"],
     weaknesses: ["electric"],
   },
 };
+

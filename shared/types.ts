@@ -30,12 +30,28 @@ export interface Actor {
   weaknesses?: Element[];
   resistances?: Element[];
   ai?: 'basic' | 'boss';
+  xp?: number;
 }
 
 export interface ActorBlueprint {
   id: string;
   nameKey: string;
   baseStats: ActorStats;
+}
+
+export interface ProgressionState {
+  level: number;
+  xp: number;
+}
+
+export interface SkillUnlockRequirement {
+  level?: number;
+  shards?: number;
+}
+
+export interface SkillUnlockDefinition {
+  skillId: string;
+  requires: SkillUnlockRequirement;
 }
 
 export interface DialogueNode {
@@ -68,4 +84,7 @@ export interface GameState {
   inventory: Array<{ id: string; qty: number }>;
   location: { roomId: string };
   heroName: string;
+  progression: ProgressionState;
+  companionLevel: number;
+  unlockedSkills: Record<string, string[]>;
 }

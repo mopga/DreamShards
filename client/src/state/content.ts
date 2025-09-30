@@ -1,8 +1,10 @@
-import skillsData from "@shared/content/skills.json" assert { type: "json" };
+﻿import skillsData from "@shared/content/skills.json" assert { type: "json" };
 import enemiesData from "@shared/content/enemies.json" assert { type: "json" };
+import progressionData from "@shared/content/progression.json" assert { type: "json" };
+import skillUnlocksData from "@shared/content/skillUnlocks.json" assert { type: "json" };
 import palaceLayoutData from "@shared/content/palaceFear.json" assert { type: "json" };
 import dialogueBeachData from "@shared/content/dialogueBeach.json" assert { type: "json" };
-import type { Skill, Actor, PalaceLayout, DialogueNode } from "@shared/types";
+import type { Skill, Actor, PalaceLayout, DialogueNode, SkillUnlockDefinition } from "@shared/types";
 
 export const skills = Object.fromEntries(
   (skillsData as Skill[]).map((skill) => [skill.id, skill])
@@ -11,6 +13,10 @@ export const skills = Object.fromEntries(
 export const enemies = Object.fromEntries(
   (enemiesData as Actor[]).map((actor) => [actor.id, actor])
 ) as Record<string, Actor>;
+
+export const progressionLevels = (progressionData as { levels: number[] }).levels;
+
+export const skillUnlocks = skillUnlocksData as Record<string, SkillUnlockDefinition[]>;
 
 export const palaceLayout = palaceLayoutData as PalaceLayout;
 export const dialogueBeach = dialogueBeachData as DialogueNode[];

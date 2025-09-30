@@ -13,7 +13,9 @@ import { skills as skillsMap } from "@/state/content";
 import { itemCatalog } from "@/state/items";
 import { getEncounter, getPartyLineup, useGame } from "@/state/GameContext";
 import type { Actor } from "@shared/types";
+import type { EncounterDefinition } from "@/state/encounters";
 
+const DIFFICULTY_PER_SHARD = 0.12;
 type PlayerActionInput =
   | { type: "attack"; targetId: string }
   | { type: "skill"; skillId: string; targetIds: string[] }
@@ -72,8 +74,13 @@ export function useCombat(): UseCombatResult {
       resolvedRef.current = false;
       return;
     }
-    const partyActors = preparePartyActors(gameState.flags, getPartyLineup(gameState.party));
-    const initial = createCombatState({ encounter, allies: partyActors });
+    const partyActors = preparePartyActors(
+      gameState.flags,
+      getPartyLineup(gameState.party),
+      gameState.unlockedSkills ?? {},
+    );
+    const scaledEncounter = scaleEncounter(encounter, gameState.shardsCollected);
+    const initial = createCombatState({ encounter: scaledEncounter, allies: partyActors });
     setCombat(initial);
     resolvedRef.current = false;
   }, [encounter, gameState.flags, gameState.party]);
@@ -238,6 +245,42 @@ export function useCombat(): UseCombatResult {
   };
 }
 
+function scaleEncounter(encounter: EncounterDefinition, shardsCollected: number): EncounterDefinition {
+  if (!encounter) return encounter;
+  if (shardsCollected <= 0) {
+    return {
+      ...encounter,
+      enemies: encounter.enemies.map((enemy) => ({
+        ...enemy,
+        stats: { ...enemy.stats },
+        skills: [...enemy.skills],
+        weaknesses: enemy.weaknesses ? [...enemy.weaknesses] : undefined,
+        resistances: enemy.resistances ? [...enemy.resistances] : undefined,
+      })),
+    };
+  }
+  const modifier = 1 + shardsCollected * DIFFICULTY_PER_SHARD;
+  return {
+    ...encounter,
+    enemies: encounter.enemies.map((enemy) => scaleActor(enemy, modifier)),
+  };
+}
+
+function scaleActor(actor: Actor, modifier: number): Actor {
+  return {
+    ...actor,
+    stats: {
+      ...actor.stats,
+      maxHP: Math.round(actor.stats.maxHP * modifier),
+      str: Math.max(1, Math.round(actor.stats.str * modifier)),
+      mag: Math.max(1, Math.round(actor.stats.mag * modifier)),
+    },
+    skills: [...actor.skills],
+    weaknesses: actor.weaknesses ? [...actor.weaknesses] : undefined,
+    resistances: actor.resistances ? [...actor.resistances] : undefined,
+  };
+}
+
 function buildPlayerAction(partial: PlayerActionInput, sourceId: string): CombatAction {
   switch (partial.type) {
     case "attack":
@@ -254,20 +297,60 @@ function buildPlayerAction(partial: PlayerActionInput, sourceId: string): Combat
   }
 }
 
-function preparePartyActors(flags: Record<string, boolean>, lineup: Actor[]) {
+function preparePartyActors(
+  flags: Record<string, boolean>,
+  lineup: Actor[],
+  unlockedSkillMap: Record<string, string[]>,
+) {
   return lineup.map((actor) => {
+    const unlockedSkills = unlockedSkillMap[actor.id];
+    const baseSkills = unlockedSkills && unlockedSkills.length ? unlockedSkills : actor.skills;
     const clone: Actor = {
       ...actor,
       stats: { ...actor.stats },
-      skills: [...actor.skills],
+      skills: [...baseSkills],
       weaknesses: actor.weaknesses ? [...actor.weaknesses] : undefined,
       resistances: actor.resistances ? [...actor.resistances] : undefined,
     };
     if (!flags.unlockCompanionSkill) {
       clone.skills = clone.skills.filter((skillId) => skillId !== "twin_resonance");
+    } else if (!clone.skills.includes("twin_resonance") && actor.skills.includes("twin_resonance")) {
+      clone.skills = [...clone.skills, "twin_resonance"];
     }
     return clone;
   });
+}
+
+function scaleEncounter(encounter: EncounterDefinition, shardsCollected: number): EncounterDefinition {
+  if (!encounter) {
+    return encounter;
+  }
+  if (shardsCollected <= 0) {
+    return {
+      ...encounter,
+      enemies: encounter.enemies.map((enemy) => scaleActor(enemy, 1)),
+    };
+  }
+  const modifier = 1 + shardsCollected * DIFFICULTY_PER_SHARD;
+  return {
+    ...encounter,
+    enemies: encounter.enemies.map((enemy) => scaleActor(enemy, modifier)),
+  };
+}
+
+function scaleActor(actor: Actor, modifier: number): Actor {
+  return {
+    ...actor,
+    stats: {
+      ...actor.stats,
+      maxHP: Math.round(actor.stats.maxHP * modifier),
+      str: Math.max(1, Math.round(actor.stats.str * modifier)),
+      mag: Math.max(1, Math.round(actor.stats.mag * modifier)),
+    },
+    skills: [...actor.skills],
+    weaknesses: actor.weaknesses ? [...actor.weaknesses] : undefined,
+    resistances: actor.resistances ? [...actor.resistances] : undefined,
+  };
 }
 
 function chooseEnemyAction(state: CombatState): CombatAction | null {
@@ -342,3 +425,8 @@ function logTelemetry(state: CombatState) {
     console.log("Combat telemetry", summary);
   }
 }
+
+
+
+
+

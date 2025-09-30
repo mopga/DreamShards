@@ -90,6 +90,12 @@ const translations: Record<Locale, Record<TranslationKey, string>> = {
     shardsLabel: "shards",
     speakerHero: "You",
     speakerLister: "Lister",
+    "levelLabel": "Lv.",
+    "xpLabel": "XP",
+    "skillUnlockTitle": "New Skill Unlocked",
+    "skillUnlockDescription": "{{actor}} can now use {{skill}}.",
+    "skillUnlockButton": "Continue",
+    "skillUnlockLog": "{{actor}} mastered {{skill}}!",
     "hero.default_name": "Dreamer",
     "hero.name": "Hero",
     "lister.name": "Lister",
@@ -130,6 +136,12 @@ const translations: Record<Locale, Record<TranslationKey, string>> = {
     shardsLabel: "\u043e\u0441\u043a\u043e\u043b\u043a\u0438",
     speakerHero: "\u0422\u044b",
     speakerLister: "\u041b\u0438\u0441\u0442\u0435\u0440",
+    "levelLabel": "\u0423\u0440.",
+    "xpLabel": "\u041e\u041f",
+    "skillUnlockTitle": "\u041d\u043e\u0432\u044b\u0439 \u043d\u0430\u0432\u044b\u043a",
+    "skillUnlockDescription": "{{actor}} \u043e\u0441\u0432\u043e\u0438\u043b {{skill}}.",
+    "skillUnlockButton": "\u041f\u0440\u043e\u0434\u043e\u043b\u0436\u0438\u0442\u044c",
+    "skillUnlockLog": "{{actor}} \u043e\u0441\u0432\u043e\u0438\u043b {{skill}}!",
     "hero.default_name": "\u0421\u043d\u043e\u0432\u0438\u0434\u0435\u0446",
     "hero.name": "\u0413\u0435\u0440\u043e\u0439",
     "lister.name": "\u041b\u0438\u0441\u0442\u0435\u0440",
@@ -273,4 +285,7 @@ export function getRandomNames(locale: Locale) {
         "Nyx",
       ];
 }
+
+
+
 

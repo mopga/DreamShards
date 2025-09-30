@@ -1,10 +1,10 @@
-[
+﻿[
   {
     "id": "luminous_strike",
     "name": "Luminous Strike",
     "costSP": 0,
     "element": "physical",
-    "power": 1,
+    "power": 1.05,
     "targets": "one",
     "description": "A focused blow that cuts through shadow silhouettes."
   },
@@ -13,7 +13,7 @@
     "name": "Ember Burst",
     "costSP": 4,
     "element": "fire",
-    "power": 1.1,
+    "power": 1.15,
     "targets": "one",
     "applies": ["weakened"],
     "description": "Ignites lingering doubts to leave foes weakened."
@@ -40,18 +40,46 @@
   {
     "id": "mind_pierce",
     "name": "Mind Pierce",
-    "costSP": 8,
+    "costSP": 5,
     "element": "psychic",
-    "power": 1.4,
+    "power": 1.45,
     "targets": "one",
     "description": "A concentrated psychic lance that exploits exposed thoughts."
   },
   {
+    "id": "veil_guard",
+    "name": "Veil Guard",
+    "costSP": 2,
+    "element": "void",
+    "power": 1,
+    "targets": "all",
+    "description": "A sweeping pulse that batters foes behind a wavering veil."
+  },
+  {
+    "id": "echo_shield",
+    "name": "Echo Shield",
+    "costSP": 3,
+    "element": "psychic",
+    "power": 0.9,
+    "targets": "all",
+    "description": "Resonant waves rebound, pushing damage back across the dream tide."
+  },
+  {
+    "id": "lunar_mark",
+    "name": "Lunar Mark",
+    "costSP": 4,
+    "element": "void",
+    "power": 1.25,
+    "targets": "one",
+    "applies": ["vulnerable"],
+    "description": "A crescent brand that leaves shadows exposed to the moonlight."
+  },
+  {
     "id": "twin_resonance",
     "name": "Twin Resonance",
-    "costSP": 9,
+    "costSP": 6,
     "element": "psychic",
-    "power": 1.6,
+    "power": 1.5,
     "targets": "all",
     "applies": ["weakened"],
     "description": "Synchronized pulse with a trusted companion, rattling all foes."

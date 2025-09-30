@@ -1,9 +1,9 @@
-[
+﻿[
   {
     "id": "shadow_crawler",
     "name": "Shadow Crawler",
     "stats": {
-      "maxHP": 40,
+      "maxHP": 42,
       "maxSP": 12,
       "str": 9,
       "mag": 6,
@@ -14,16 +14,17 @@
     },
     "skills": ["luminous_strike"],
     "weaknesses": ["fire", "psychic"],
-    "ai": "basic"
+    "ai": "basic",
+    "xp": 12
   },
   {
     "id": "shadow_screamer",
     "name": "Shadow Screamer",
     "stats": {
-      "maxHP": 55,
+      "maxHP": 60,
       "maxSP": 18,
       "str": 8,
-      "mag": 10,
+      "mag": 11,
       "def": 6,
       "res": 7,
       "agi": 7,
@@ -32,16 +33,17 @@
     "skills": ["ember_burst", "frost_lattice"],
     "weaknesses": ["electric"],
     "resistances": ["ice"],
-    "ai": "basic"
+    "ai": "basic",
+    "xp": 18
   },
   {
     "id": "fear_avatar",
     "name": "Avatar of Fear",
     "stats": {
-      "maxHP": 220,
+      "maxHP": 240,
       "maxSP": 40,
-      "str": 14,
-      "mag": 16,
+      "str": 16,
+      "mag": 18,
       "def": 12,
       "res": 12,
       "agi": 10,
@@ -50,6 +52,7 @@
     "skills": ["ember_burst", "voltaic_chain", "mind_pierce"],
     "weaknesses": ["psychic"],
     "resistances": ["fire", "ice"],
-    "ai": "boss"
+    "ai": "boss",
+    "xp": 80
   }
 ]

@@ -1,0 +1,12 @@
+﻿{
+  "hero": [
+    {"skillId": "luminous_strike", "requires": {"level": 1}},
+    {"skillId": "ember_burst", "requires": {"level": 2}},
+    {"skillId": "mind_pierce", "requires": {"level": 3}},
+    {"skillId": "veil_guard", "requires": {"shards": 2}}
+  ],
+  "lister": [
+    {"skillId": "echo_shield", "requires": {"level": 1}},
+    {"skillId": "lunar_mark", "requires": {"level": 3}}
+  ]
+}
