@@ -12,6 +12,19 @@ const defaultPath = process.env.DATABASE_FILE
 fs.mkdirSync(path.dirname(defaultPath), { recursive: true });
 
 const sqlite = new Database(defaultPath);
+
+function ensureSchema(database: typeof sqlite) {
+  database.exec(`
+    CREATE TABLE IF NOT EXISTS "saves" (
+      "id" integer PRIMARY KEY AUTOINCREMENT,
+      "created_at" integer NOT NULL DEFAULT (strftime('%s','now')),
+      "payload" text NOT NULL
+    )
+  `);
+}
+
+ensureSchema(sqlite);
+
 export const db = drizzle(sqlite);
 
 export async function insertSave(payload: InsertSave["payload"]): Promise<number> {
