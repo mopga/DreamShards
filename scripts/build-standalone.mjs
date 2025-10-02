@@ -173,7 +173,7 @@ function quoteCmdArg(arg) {
   const needsQuotes = /[\s&|^<>"']/.test(arg);
 
   if (!needsQuotes) {
-    return arg;
+    return process.platform === "win32" ? arg.replace(/\^/g, "^^") : arg;
   }
 
   let result = '"';
@@ -201,7 +201,10 @@ function quoteCmdArg(arg) {
 
   result += "\\".repeat(backslashes * 2);
   result += '"';
-
+  if (process.platform === "win32") {
+    result = result.replace(/\^/g, "^^");
+  }
+  
   return result;
 }
 
