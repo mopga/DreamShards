@@ -33,6 +33,7 @@ npm install
 
 This installs both runtime and development dependencies (including `@types/better-sqlite3` for the server) and automatically bootstraps the Electron workspace under `desktop/`—even when installing with production flags—so commands such as `npm run desktop:dev` and `npm run desktop:build` have access to tools like `concurrently` and `rimraf`.
 
+
 ## Available Scripts
 
 ### Type Check

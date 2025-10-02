@@ -9,10 +9,12 @@
     "start": "NODE_ENV=production node dist/server/index.js",
     "build:standalone:win": "node scripts/build-standalone.mjs",
     "check": "tsc",
-    "postinstall": "npm install --prefix desktop --include=dev",
+    "postinstall": "npm run bootstrap:desktop",
+    "bootstrap:desktop": "npm install --prefix desktop --production=false",
+ main
     "db:push": "drizzle-kit push --config server/drizzle.config.ts",
     "desktop:dev": "npm run dev --prefix desktop",
-    "desktop:build": "npm run package --prefix desktop"
+    "desktop:build": "npm run bootstrap:desktop && npm run package --prefix desktop"
   },
   "dependencies": {
     "@fontsource/inter": "^5.2.5",
