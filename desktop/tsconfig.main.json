@@ -2,14 +2,16 @@
   "extends": "../tsconfig.base.json",
   "compilerOptions": {
     "composite": true,
-    "module": "CommonJS",
+    "module": "Node16",
     "moduleResolution": "node16",
     "target": "ES2022",
     "lib": ["es2022"],
     "rootDir": "./src/main",
-    "outDir": "../dist/desktop/main",
+    "outDir": "./dist/main",
     "noEmit": false,
+    "allowImportingTsExtensions": false,
     "types": ["node", "electron"]
   },
-  "include": ["src/main/**/*.ts"]
+  "include": ["src/main/**/*.ts"],
+  "exclude": ["./dist/main"]
 }
