@@ -6,17 +6,27 @@
       "neighbors": [
         "hall",
         "gallery"
-      ],
-      "encounterTable": "weak"
+      ]
     },
     {
       "id": "hall",
       "type": "combat",
       "neighbors": [
         "entry",
-        "library"
+        "library",
+        "guard_room"
       ],
       "encounterTable": "weak"
+    },
+    {
+      "id": "guard_room",
+      "type": "combat",
+      "neighbors": [
+        "hall",
+        "servants_room"
+      ],
+      "encounterTable": "mid",
+      "guardEncounter": "guard_watch"
     },
     {
       "id": "library",
@@ -30,15 +40,43 @@
       "guardEncounter": "guard1"
     },
     {
+      "id": "servants_room",
+      "type": "lore",
+      "neighbors": [
+        "guard_room",
+        "gallery"
+      ],
+      "encounterTable": "weak",
+      "loot": {
+        "items": [
+          { "id": "starlight_infusion", "qty": 1 }
+        ],
+        "actionLabel": "Обыскать комнату",
+        "logMessage": "Найдено: запечатанный флакон звездной эссенции."
+      }
+    },
+    {
       "id": "gallery",
       "type": "shard",
       "shardId": "shard2",
       "neighbors": [
         "entry",
-        "vault"
+        "vault",
+        "servants_room",
+        "royal_bedroom"
       ],
       "encounterTable": "mid",
       "guardEncounter": "guard2"
+    },
+    {
+      "id": "royal_bedroom",
+      "type": "combat",
+      "neighbors": [
+        "gallery",
+        "vault"
+      ],
+      "encounterTable": "hard",
+      "guardEncounter": "guard_royal"
     },
     {
       "id": "vault",
@@ -47,6 +85,7 @@
       "neighbors": [
         "library",
         "gallery",
+        "royal_bedroom",
         "gate"
       ],
       "encounterTable": "hard",

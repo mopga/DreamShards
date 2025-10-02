@@ -1,0 +1,20 @@
+{
+  "tables": {
+    "weak": [
+      { "id": "e_w1", "weight": 50 },
+      { "id": "e_w2", "weight": 50 }
+    ],
+    "mid": [
+      { "id": "e_m1", "weight": 60 },
+      { "id": "e_m2", "weight": 40 }
+    ],
+    "hard": [
+      { "id": "e_h1", "weight": 70 },
+      { "id": "e_h2", "weight": 30 }
+    ]
+  },
+  "cooldownSteps": 1,
+  "baseChance": 0.35,
+  "chanceStep": 0.15,
+  "maxChance": 0.85
+}
