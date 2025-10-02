@@ -11,6 +11,7 @@
     "check": "tsc",
     "postinstall": "npm run bootstrap:desktop",
     "bootstrap:desktop": "npm install --prefix desktop --production=false",
+ main
     "db:push": "drizzle-kit push --config server/drizzle.config.ts",
     "desktop:dev": "npm run dev --prefix desktop",
     "desktop:build": "npm run bootstrap:desktop && npm run package --prefix desktop"
