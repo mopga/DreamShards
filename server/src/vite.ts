@@ -63,8 +63,16 @@ export async function setupVite(app: Express, server: Server) {
   });
 }
 
+function resolveDistRoot() {
+  if (typeof process.pkg !== "undefined") {
+    return path.dirname(process.execPath);
+  }
+
+  return path.resolve(__dirname, "..");
+}
+
 export function serveStatic(app: Express) {
-  const distPath = path.resolve(__dirname, "..", "public");
+  const distPath = path.join(resolveDistRoot(), "public");
 
   if (!fs.existsSync(distPath)) {
     throw new Error(
@@ -74,6 +82,6 @@ export function serveStatic(app: Express) {
 
   app.use(express.static(distPath));
   app.use("*", (_req, res) => {
-    res.sendFile(path.resolve(distPath, "index.html"));
+    res.sendFile(path.join(distPath, "index.html"));
   });
 }

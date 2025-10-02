@@ -7,6 +7,7 @@
     "dev": "tsx server/src/index.ts",
     "build": "vite build && esbuild server/src/index.ts --platform=node --packages=external --bundle --format=esm --outfile=dist/server/index.js",
     "start": "NODE_ENV=production node dist/server/index.js",
+    "build:standalone:win": "node scripts/build-standalone.mjs",
     "check": "tsc",
     "db:push": "drizzle-kit push --config server/drizzle.config.ts"
   },
@@ -118,6 +119,7 @@
     "autoprefixer": "^10.4.20",
     "drizzle-kit": "^0.30.4",
     "esbuild": "^0.25.0",
+    "pkg": "^5.8.1",
     "postcss": "^8.4.47",
     "tailwindcss": "^3.4.14",
     "tsx": "^4.19.1",
