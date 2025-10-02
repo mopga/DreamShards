@@ -7,8 +7,12 @@ import { type Server } from "http";
 import { nanoid } from "nanoid";
 import viteConfig from "../../vite.config";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const moduleFilename =
+  typeof __filename === "string"
+    ? __filename
+    : fileURLToPath(import.meta.url);
+const moduleDirname =
+  typeof __dirname === "string" ? __dirname : path.dirname(moduleFilename);
 const viteLogger = createLogger();
 
 export function log(message: string, source = "express") {
@@ -48,7 +52,13 @@ export async function setupVite(app: Express, server: Server) {
     const url = req.originalUrl;
 
     try {
-      const clientTemplate = path.resolve(__dirname, "..", "..", "client", "index.html");
+      const clientTemplate = path.resolve(
+        moduleDirname,
+        "..",
+        "..",
+        "client",
+        "index.html",
+      );
       let template = await fs.promises.readFile(clientTemplate, "utf-8");
       template = template.replace(
         `src="/src/main.tsx"`,
@@ -68,7 +78,7 @@ function resolveDistRoot() {
     return path.dirname(process.execPath);
   }
 
-  return path.resolve(__dirname, "..");
+  return path.resolve(moduleDirname, "..");
 }
 
 export function serveStatic(app: Express) {

@@ -5,8 +5,12 @@ import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 import { fileURLToPath } from "url";
 import glsl from "vite-plugin-glsl";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+const moduleFilename =
+  typeof __filename === "string"
+    ? __filename
+    : fileURLToPath(import.meta.url);
+const moduleDirname =
+  typeof __dirname === "string" ? __dirname : dirname(moduleFilename);
 
 export default defineConfig({
   plugins: [
@@ -16,13 +20,13 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "client", "src"),
-      "@shared": path.resolve(__dirname, "shared"),
+      "@": path.resolve(moduleDirname, "client", "src"),
+      "@shared": path.resolve(moduleDirname, "shared"),
     },
   },
-  root: path.resolve(__dirname, "client"),
+  root: path.resolve(moduleDirname, "client"),
   build: {
-    outDir: path.resolve(__dirname, "dist/public"),
+    outDir: path.resolve(moduleDirname, "dist/public"),
     emptyOutDir: true,
   },
   // Add support for large models and audio files
