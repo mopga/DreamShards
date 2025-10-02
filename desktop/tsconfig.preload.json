@@ -2,14 +2,16 @@
   "extends": "../tsconfig.base.json",
   "compilerOptions": {
     "composite": true,
-    "module": "CommonJS",
+    "module": "Node16",
     "moduleResolution": "node16",
     "target": "ES2022",
     "lib": ["es2022", "dom"],
     "rootDir": "./src/preload",
-    "outDir": "../dist/desktop/preload",
+    "outDir": "./dist/preload",
     "noEmit": false,
+    "allowImportingTsExtensions": false,
     "types": ["node", "electron"]
   },
-  "include": ["src/preload/**/*.ts"]
+  "include": ["src/preload/**/*.ts"],
+  "exclude": ["./dist/preload"]
 }

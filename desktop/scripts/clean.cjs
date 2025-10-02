@@ -2,12 +2,16 @@
 const fs = require('node:fs');
 const path = require('node:path');
 
-const target = path.resolve(__dirname, '..', '..', 'dist', 'desktop');
+const targets = [
+  path.resolve(__dirname, '..', '..', 'dist', 'desktop'),
+  path.resolve(__dirname, '..', 'dist')
+];
 
-try {
-  fs.rmSync(target, { recursive: true, force: true });
-  process.exit(0);
-} catch (error) {
-  console.error(`Failed to remove ${target}:`, error);
-  process.exitCode = 1;
+for (const target of targets) {
+  try {
+    fs.rmSync(target, { recursive: true, force: true });
+  } catch (error) {
+    console.error(`Failed to remove ${target}:`, error);
+    process.exitCode = 1;
+  }
 }
