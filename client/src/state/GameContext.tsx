@@ -98,6 +98,16 @@ function appendAllowedLog(log: string[], message: string): string[] {
   return [...log, message].slice(-20);
 }
 
+codex/filter-log-messages-in-game-jdrcnp
+function appendAllowedLogs(log: string[], messages: readonly string[]): string[] {
+  if (!messages.length) {
+    return log;
+  }
+  return messages.reduce((current, message) => appendAllowedLog(current, message), log);
+}
+
+
+main
 function createInitialState(): AppState {
   const progression: ProgressionState = { level: 1, xp: 0 };
   const flags: Record<string, boolean> = {};
@@ -422,11 +432,18 @@ function reducer(state: AppState, action: any): AppState {
     case "START_ENCOUNTER":
       return { ...state, mode: "combat", activeEncounterId: action.payload };
     case "RESOLVE_COMBAT": {
+codex/filter-log-messages-in-game-jdrcnp
+      const { encounterId, victory, rewards, messages } = action.payload as CombatResolution;
+      let flags = state.flags;
+      let inventory = state.inventory;
+      let mode: GameMode = "exploration";
+      let log = appendAllowedLogs(state.log, messages ?? []);
       const { encounterId, victory, rewards } = action.payload as CombatResolution;
       let flags = state.flags;
       let inventory = state.inventory;
       let mode: GameMode = "exploration";
       let log = state.log;
+main
       let progression = state.progression ?? { level: 1, xp: 0 };
       let companionLevel = state.companionLevel ?? progression.level;
       let unlockedSkills = state.unlockedSkills ?? {};
