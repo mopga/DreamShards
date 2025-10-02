@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { execSync, execFileSync } from "node:child_process";
+import { execSync, execFileSync, spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -25,6 +25,8 @@ const sqliteBinary = path.join(
 const PLATFORM_ALIASES = new Map([
   ["win", "win32"],
   ["windows", "win32"],
+  ["win64", "win32"],
+  ["windows64", "win32"],
   ["win32", "win32"],
   ["linux", "linux"],
   ["darwin", "darwin"],
@@ -163,10 +165,72 @@ function run(command) {
   execSync(command, { stdio: "inherit", cwd: rootDir });
 }
 
+function quoteCmdArg(arg) {
+  if (arg.length === 0) {
+    return '""';
+  }
+
+  const needsQuotes = /[\s&|^<>"']/.test(arg);
+
+  if (!needsQuotes) {
+    return arg;
+  }
+
+  let result = '"';
+  let backslashes = 0;
+
+  for (let i = 0; i < arg.length; i += 1) {
+    const char = arg[i];
+
+    if (char === "\\") {
+      backslashes += 1;
+      continue;
+    }
+
+    if (char === '"') {
+      result += "\\".repeat(backslashes * 2 + 1);
+      result += '"';
+      backslashes = 0;
+      continue;
+    }
+
+    result += "\\".repeat(backslashes);
+    backslashes = 0;
+    result += char;
+  }
+
+  result += "\\".repeat(backslashes * 2);
+  result += '"';
+
+  return result;
+}
+
 function runBin(binary, args, options = {}) {
   const command = typeof binary === "string" ? binary : binary.command;
   const prefixArgs = typeof binary === "string" ? [] : binary.args ?? [];
-  execFileSync(command, [...prefixArgs, ...args], { stdio: "inherit", cwd: options.cwd ?? rootDir });
+  const finalArgs = [...prefixArgs, ...args];
+  const cwd = options.cwd ?? rootDir;
+
+  if (process.platform === "win32" && command.toLowerCase().endsWith(".cmd")) {
+    const comspec = process.env.ComSpec || process.env.COMSPEC || "cmd.exe";
+    const commandLine = [command, ...finalArgs].map(quoteCmdArg).join(" ");
+    const result = spawnSync(comspec, ["/d", "/s", "/c", commandLine], {
+      stdio: "inherit",
+      cwd,
+    });
+
+    if (result.error) {
+      throw result.error;
+    }
+
+    if (result.status !== 0) {
+      throw new Error(`Command failed: ${commandLine}`);
+    }
+
+    return;
+  }
+
+  execFileSync(command, finalArgs, { stdio: "inherit", cwd });
 }
 
 const binExt = process.platform === "win32" ? ".cmd" : "";

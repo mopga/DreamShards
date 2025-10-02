@@ -79,7 +79,7 @@ Generates a self-contained distribution for the current platform (defaults to Wi
 2. Copies the client bundle, bundled server, SQLite database, and native `better_sqlite3.node` binary into the standalone folder.
 3. Uses [`pkg`](https://github.com/vercel/pkg) to compile `dist/server/index.js` into a platform-specific executable targeting Node.js 18.
 
-To build for a different target explicitly, run the script directly and supply `--target <platform>-<arch>`, for example `node scripts/build-standalone.mjs --target win-x64` or `--target linux-arm64`. You can also pass `--platform` and `--arch` separately.
+To build for a different target explicitly, run the script directly and supply `--target <platform>-<arch>`, for example `node scripts/build-standalone.mjs --target win-x64` or `--target linux-arm64`. You can also pass `--platform` and `--arch` separately. Windows aliases such as `win`, `win32`, `win64`, and `windows64` are all accepted and normalized to the supported `win32` target.
 
 The resulting folder contains the executable (`DreamShards.exe` on Windows, `DreamShards` elsewhere), the `public/` assets directory, a `server/dreamshards.db` starter database, and the `better_sqlite3.node` native module required by SQLite. Ship or zip the entire folder to run the game without a separate Node.js installation.
 
