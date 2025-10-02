@@ -118,6 +118,13 @@ const typeStyles: Record<string, { base: string; glyph: string; label: string }>
   },
 };
 
+const typeTooltips: Record<string, string> = {
+  entry: "Вход",
+  combat: "Боевой зал",
+  shard: "Зал осколка",
+  boss: "Тронный зал",
+};
+
 function formatRoomId(id: string) {
   const meta = roomMetadata[id];
   if (meta) return meta.name;
@@ -248,13 +255,28 @@ export function ExplorationView() {
                 const isAccessible = accessibleRooms.has(mapRoom.id);
                 const isNeighbor = room.neighbors.includes(mapRoom.id);
                 const appearance = typeStyles[mapRoom.type] ?? typeStyles.default;
+                const mapRoomState = state.roomStates[mapRoom.id] ?? {};
+                const guardCleared = mapRoom.guardEncounter
+                  ? Boolean(state.flags[`encounter_${mapRoom.guardEncounter}_cleared`])
+                  : false;
+                const bossCleared = mapRoom.type === "boss" ? Boolean(state.flags.bossDefeated) : false;
+                const shardClaimed = Boolean(
+                  mapRoomState.shardCollected || (mapRoom.shardId ? state.flags[mapRoom.shardId] : false),
+                );
+                const isCleared = Boolean(mapRoomState.cleared || guardCleared || bossCleared);
+                const isBossLocked = mapRoom.type === "boss" && state.shardsCollected < totalShards && !bossCleared;
+                const tooltipLines = [typeTooltips[mapRoom.type] ?? typeStyles.default.label];
+                if (isBossLocked) {
+                  tooltipLines.push("Вход доступен только при 4/4 осколках");
+                }
+                const tooltipTitle = tooltipLines.join("\n");
 
                 return (
                   <button
                     key={mapRoom.id}
                     type="button"
                     aria-current={isCurrent}
-                    aria-label={formatRoomId(mapRoom.id)}
+                    aria-label={`${formatRoomId(mapRoom.id)} — ${tooltipLines.join(", ")}`}
                     disabled={!isAccessible || isCurrent}
                     onClick={() => {
                       if (!isCurrent) {
@@ -266,7 +288,18 @@ export function ExplorationView() {
                       isAccessible ? "text-slate-200" : "cursor-not-allowed text-slate-600/70",
                     )}
                     style={{ left: `${position.x}%`, top: `${position.y}%` }}
+                    title={tooltipTitle}
                   >
+                    <div
+                      aria-hidden
+                      className="pointer-events-none absolute -top-3 left-1/2 z-20 flex -translate-x-1/2 -translate-y-full scale-95 flex-col gap-1 rounded-md bg-slate-950/90 px-2 py-1 text-[0.65rem] font-medium text-slate-100 opacity-0 shadow-lg shadow-cyan-500/20 ring-1 ring-slate-700/70 transition group-hover:translate-y-0 group-hover:scale-100 group-hover:opacity-100 group-focus-visible:translate-y-0 group-focus-visible:scale-100 group-focus-visible:opacity-100"
+                    >
+                      {tooltipLines.map((line, index) => (
+                        <span key={index} className="whitespace-nowrap">
+                          {line}
+                        </span>
+                      ))}
+                    </div>
                     <span
                       className={clsx(
                         "relative flex h-14 w-14 items-center justify-center rounded-full border text-base transition",
@@ -275,6 +308,8 @@ export function ExplorationView() {
                           "border-cyan-300/80 text-cyan-100 shadow-[0_0_20px_rgba(94,234,212,0.25)]",
                         isCurrent &&
                           "border-cyan-200/90 bg-cyan-400/20 text-cyan-50 shadow-[0_0_26px_rgba(165,243,252,0.55)]",
+                        isCleared && !isCurrent &&
+                          "border-emerald-300/70 text-emerald-200 shadow-[0_0_18px_rgba(52,211,153,0.35)]",
                         !isAccessible && !isCurrent && "border-slate-700/40 text-slate-600/70",
                       )}
                     >
@@ -283,9 +318,21 @@ export function ExplorationView() {
                       ) : (
                         <span className="text-lg">{appearance.glyph}</span>
                       )}
+                      {shardClaimed && mapRoom.shardId && (
+                        <span className="pointer-events-none absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-amber-400/90 text-[0.6rem] font-bold text-slate-900 shadow-lg shadow-amber-500/40">
+                          ✦
+                        </span>
+                      )}
                     </span>
-                    <span className="max-w-[7rem] text-center text-slate-300/90">
-                      {formatRoomId(mapRoom.id)}
+                    <span className="flex flex-col items-center gap-1">
+                      <span className="max-w-[7rem] text-center text-slate-300/90">
+                        {formatRoomId(mapRoom.id)}
+                      </span>
+                      {isCleared && (
+                        <span className="rounded-full bg-emerald-400/15 px-2 py-[0.15rem] text-[0.55rem] font-semibold tracking-[0.3em] text-emerald-200">
+                          Очищена
+                        </span>
+                      )}
                     </span>
                   </button>
                 );

@@ -39,6 +39,7 @@ interface DialogueSession {
 type RoomState = {
   shardCollected?: boolean;
   lootClaimed?: boolean;
+  cleared?: boolean;
 };
 
 export interface AppState extends GameState {
@@ -201,7 +202,19 @@ function findNextShardSlot(flags: Record<string, boolean>) {
 function createInitialRoomStates(flags: Record<string, boolean>) {
   return palaceLayout.rooms.reduce<Record<string, RoomState>>((acc, room) => {
     const shardCollected = room.shardId ? Boolean(flags[room.shardId]) : false;
-    acc[room.id] = shardCollected ? { shardCollected: true } : {};
+    const guardCleared = room.guardEncounter
+      ? Boolean(flags[`encounter_${room.guardEncounter}_cleared`])
+      : false;
+    const bossCleared = room.type === "boss" ? Boolean(flags.bossDefeated) : false;
+    const cleared = guardCleared || bossCleared || shardCollected;
+    const state: RoomState = {};
+    if (shardCollected) {
+      state.shardCollected = true;
+    }
+    if (cleared) {
+      state.cleared = true;
+    }
+    acc[room.id] = state;
     return acc;
   }, {});
 }
@@ -521,7 +534,11 @@ function reducer(state: AppState, action: any): AppState {
       const roomStates = shardCollectedInRoom
         ? {
             ...state.roomStates,
-            [roomId]: { ...(state.roomStates[roomId] ?? {}), shardCollected: true },
+            [roomId]: {
+              ...(state.roomStates[roomId] ?? {}),
+              shardCollected: true,
+              cleared: true,
+            },
           }
         : state.roomStates;
       return {
@@ -583,7 +600,8 @@ function reducer(state: AppState, action: any): AppState {
             ...roomStates,
             [guardRoom.id]: {
               ...(roomStates[guardRoom.id] ?? {}),
-              shardCollected: true,
+              ...(guardRoom.shardId ? { shardCollected: true } : {}),
+              cleared: true,
             },
           };
 
@@ -593,6 +611,17 @@ function reducer(state: AppState, action: any): AppState {
           }
 
           shardAwarded = true;
+        }
+
+        if (!guardRoom) {
+          const currentRoomId = state.location.roomId;
+          roomStates = {
+            ...roomStates,
+            [currentRoomId]: {
+              ...(roomStates[currentRoomId] ?? {}),
+              cleared: true,
+            },
+          };
         }
 
         if (rewards?.shards && !shardAwarded) {
@@ -685,6 +714,34 @@ function reducer(state: AppState, action: any): AppState {
             [shardRoom.id]: {
               ...(roomStates[shardRoom.id] ?? {}),
               shardCollected: true,
+              cleared: true,
+            },
+          };
+        }
+
+        const encounterMatch = key.match(/^encounter_(.+)_cleared$/);
+        if (encounterMatch) {
+          const guardRoom = palaceLayout.rooms.find(
+            (room) => room.guardEncounter === encounterMatch[1],
+          );
+          if (guardRoom) {
+            roomStates = {
+              ...roomStates,
+              [guardRoom.id]: {
+                ...(roomStates[guardRoom.id] ?? {}),
+                ...(guardRoom.shardId ? { shardCollected: true } : {}),
+                cleared: true,
+              },
+            };
+          }
+        }
+
+        if (key === "bossDefeated") {
+          roomStates = {
+            ...roomStates,
+            boss: {
+              ...(roomStates.boss ?? {}),
+              cleared: true,
             },
           };
         }
