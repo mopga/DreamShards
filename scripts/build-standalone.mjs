@@ -166,7 +166,24 @@ function runBin(binary, args, options = {}) {
   execFileSync(binary, args, { stdio: "inherit", cwd: options.cwd ?? rootDir });
 }
 
-const npxBin = process.platform === "win32" ? "npx.cmd" : "npx";
+const binExt = process.platform === "win32" ? ".cmd" : "";
+
+function resolveBin(name, options = {}) {
+  const binPath = path.join(rootDir, "node_modules", ".bin", `${name}${binExt}`);
+
+  if (!fs.existsSync(binPath)) {
+    const installCommand = options.installCommand ?? "npm install";
+    throw new Error(
+      `Required binary "${name}" was not found at ${binPath}. Did you run ${installCommand}?`,
+    );
+  }
+
+  return binPath;
+}
+
+const esbuildBin = resolveBin("esbuild");
+const prebuildInstallBin = resolveBin("prebuild-install", { installCommand: "npm install" });
+const pkgBin = resolveBin("pkg", { installCommand: "npm install --save-dev pkg" });
 
 function ensureBuildArtifacts() {
   const hasServer = fs.existsSync(serverBundle);
@@ -188,7 +205,6 @@ function buildCommonJsServerBundle() {
   console.log("⚙️  Creating CommonJS server bundle for pkg...");
   const relativeOutput = path.relative(rootDir, serverStandaloneBundle);
   const esbuildArgs = [
-    "esbuild",
     path.join("server", "src", "index.ts"),
     "--platform=node",
     "--packages=external",
@@ -196,7 +212,7 @@ function buildCommonJsServerBundle() {
     "--format=cjs",
     `--outfile=${relativeOutput}`,
   ];
-  runBin(npxBin, esbuildArgs);
+  runBin(esbuildBin, esbuildArgs);
 
   if (!fs.existsSync(serverStandaloneBundle)) {
     throw new Error("Failed to create CommonJS server bundle for pkg.");
@@ -248,9 +264,8 @@ function ensureBetterSqliteBinary() {
 
   try {
     runBin(
-      npxBin,
+      prebuildInstallBin,
       [
-        "prebuild-install",
         "--target",
         pkgNodeVersion,
         "--runtime",
@@ -284,7 +299,6 @@ function createExecutable() {
   }
 
   const pkgArgs = [
-    "pkg",
     path.relative(rootDir, serverStandaloneBundle),
     "--target",
     pkgTarget,
@@ -294,7 +308,7 @@ function createExecutable() {
     path.relative(rootDir, pkgConfigFile),
   ];
 
-  runBin(npxBin, pkgArgs);
+  runBin(pkgBin, pkgArgs);
 }
 
 function main() {
