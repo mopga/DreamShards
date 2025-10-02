@@ -3,6 +3,7 @@ import { execSync, execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { build as esbuild } from "esbuild";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -198,7 +199,6 @@ function resolveBin(name, options = {}) {
   );
 }
 
-const esbuildBin = resolveBin("esbuild");
 const prebuildInstallBin = resolveBin("prebuild-install", { installCommand: "npm install" });
 const packageJsonPath = path.join(rootDir, "package.json");
 const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf8"));
@@ -230,18 +230,17 @@ function ensureBuildArtifacts() {
   }
 }
 
-function buildCommonJsServerBundle() {
+async function buildCommonJsServerBundle() {
   console.log("⚙️  Creating CommonJS server bundle for pkg...");
-  const relativeOutput = path.relative(rootDir, serverStandaloneBundle);
-  const esbuildArgs = [
-    path.join("server", "src", "index.ts"),
-    "--platform=node",
-    "--packages=external",
-    "--bundle",
-    "--format=cjs",
-    `--outfile=${relativeOutput}`,
-  ];
-  runBin(esbuildBin, esbuildArgs);
+  await esbuild({
+    entryPoints: [path.join(rootDir, "server", "src", "index.ts")],
+    platform: "node",
+    packages: "external",
+    bundle: true,
+    format: "cjs",
+    outfile: serverStandaloneBundle,
+    target: "node18",
+  });
 
   if (!fs.existsSync(serverStandaloneBundle)) {
     throw new Error("Failed to create CommonJS server bundle for pkg.");
@@ -340,10 +339,10 @@ function createExecutable() {
   runBin(pkgBin, pkgArgs);
 }
 
-function main() {
+async function main() {
   console.log(`🎯 Targeting ${targetPlatform}/${targetArch} (pkg target ${pkgTarget})`);
   ensureBuildArtifacts();
-  buildCommonJsServerBundle();
+  await buildCommonJsServerBundle();
   prepareOutputDirectory();
   ensureBetterSqliteBinary();
   copyStaticAssets();
@@ -351,4 +350,7 @@ function main() {
   console.log(`✅ Standalone build created at ${outputRoot} (target ${pkgTarget})`);
 }
 
-main();
+main().catch((error) => {
+  console.error(error);
+  process.exit(1);
+});
