@@ -66,14 +66,19 @@ export interface DialogueNode {
   end?: boolean;
 }
 
+export type PalaceEncounterTable = 'weak' | 'mid' | 'hard';
+
+export interface PalaceRoom {
+  id: string;
+  type: 'entry' | 'combat' | 'shard' | 'boss';
+  neighbors: string[];
+  shardId?: string;
+  encounterTable?: PalaceEncounterTable;
+  guardEncounter?: string;
+}
+
 export interface PalaceLayout {
-  rooms: Array<{
-    id: string;
-    type: 'entry' | 'combat' | 'shard' | 'boss';
-    neighbors: string[];
-    encounterId?: string;
-    shardId?: string;
-  }>;
+  rooms: PalaceRoom[];
   bossEncounterId: string;
 }
 

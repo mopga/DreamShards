@@ -24,17 +24,31 @@ function cloneActor(actor: Actor): Actor {
 }
 
 export const encounters: Record<string, EncounterDefinition> = {
-  shadow_pack: {
-    id: "shadow_pack",
-    name: "First Echo",
-    description: "Tattered shadows gather around the cracked mirrors.",
+  guard1: {
+    id: "guard1",
+    name: "Страж Библиотеки",
+    description: "Бестелесный рыцарь охраняет первый осколок среди безмолвных полок.",
+    enemies: [cloneActor(enemies.shadow_crawler)],
+    reward: { items: [{ id: "dream_tonic", qty: 1 }] },
+  },
+  guard2: {
+    id: "guard2",
+    name: "Страж Галереи",
+    description: "Рой стеклянных химер срывается с рам, защищая сияющую сердцевину.",
     enemies: [cloneActor(enemies.shadow_crawler), cloneActor(enemies.shadow_screamer)],
     reward: { items: [{ id: "dream_tonic", qty: 1 }] },
   },
-  fear_avatar_final: {
-    id: "fear_avatar_final",
-    name: "Avatar of Fear",
-    description: "A towering figure woven from anxious silhouettes.",
+  guard3: {
+    id: "guard3",
+    name: "Страж Сокровищницы",
+    description: "Сгусток страха складывается в две фигуры, что движутся как единое целое.",
+    enemies: [cloneActor(enemies.shadow_screamer), cloneActor(enemies.shadow_screamer)],
+    reward: { items: [{ id: "dream_tonic", qty: 2 }] },
+  },
+  boss_fear: {
+    id: "boss_fear",
+    name: "Аватар страха",
+    description: "Гигантский силуэт, сотканный из колебаний и дрожи каждого шагнувшего внутрь.",
     enemies: [cloneActor(enemies.fear_avatar)],
     boss: true,
     reward: { shards: 0 },
