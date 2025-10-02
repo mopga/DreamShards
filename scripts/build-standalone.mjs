@@ -163,7 +163,9 @@ function run(command) {
 }
 
 function runBin(binary, args, options = {}) {
-  execFileSync(binary, args, { stdio: "inherit", cwd: options.cwd ?? rootDir });
+  const command = typeof binary === "string" ? binary : binary.command;
+  const prefixArgs = typeof binary === "string" ? [] : binary.args ?? [];
+  execFileSync(command, [...prefixArgs, ...args], { stdio: "inherit", cwd: options.cwd ?? rootDir });
 }
 
 const binExt = process.platform === "win32" ? ".cmd" : "";
@@ -171,19 +173,46 @@ const binExt = process.platform === "win32" ? ".cmd" : "";
 function resolveBin(name, options = {}) {
   const binPath = path.join(rootDir, "node_modules", ".bin", `${name}${binExt}`);
 
-  if (!fs.existsSync(binPath)) {
-    const installCommand = options.installCommand ?? "npm install";
-    throw new Error(
-      `Required binary "${name}" was not found at ${binPath}. Did you run ${installCommand}?`,
-    );
+  if (fs.existsSync(binPath)) {
+    return { command: binPath, args: [] };
   }
 
-  return binPath;
+  if (options.fallback) {
+    const installCommand = options.installCommand ?? "npm install";
+    const description = options.fallback.description ?? `${options.fallback.command} ${
+      options.fallback.args?.join(" ") ?? ""
+    }`.trim();
+    console.warn(
+      `⚠️  Required binary "${name}" was not found at ${binPath}. ` +
+        `Falling back to ${description}. Consider running ${installCommand} to install it locally.`,
+    );
+    return {
+      command: options.fallback.command,
+      args: options.fallback.args ?? [],
+    };
+  }
+
+  const installCommand = options.installCommand ?? "npm install";
+  throw new Error(
+    `Required binary "${name}" was not found at ${binPath}. Did you run ${installCommand}?`,
+  );
 }
 
 const esbuildBin = resolveBin("esbuild");
 const prebuildInstallBin = resolveBin("prebuild-install", { installCommand: "npm install" });
-const pkgBin = resolveBin("pkg", { installCommand: "npm install --save-dev pkg" });
+const packageJsonPath = path.join(rootDir, "package.json");
+const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf8"));
+const pkgVersionSpec =
+  packageJson.devDependencies?.pkg ?? packageJson.dependencies?.pkg ?? null;
+
+const pkgBin = resolveBin("pkg", {
+  installCommand: "npm install --save-dev pkg",
+  fallback: {
+    command: process.platform === "win32" ? "npx.cmd" : "npx",
+    args: ["--yes", pkgVersionSpec ? `pkg@${pkgVersionSpec}` : "pkg"],
+    description: pkgVersionSpec ? `npx --yes pkg@${pkgVersionSpec}` : "npx --yes pkg",
+  },
+});
 
 function ensureBuildArtifacts() {
   const hasServer = fs.existsSync(serverBundle);
