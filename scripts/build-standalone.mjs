@@ -268,16 +268,88 @@ function resolveBin(name, options = {}) {
 
 const prebuildInstallBin = resolveBin("prebuild-install", { installCommand: "npm install" });
 const packageJsonPath = path.join(rootDir, "package.json");
+const packageLockPath = path.join(rootDir, "package-lock.json");
 const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf8"));
 const pkgVersionSpec =
   packageJson.devDependencies?.pkg ?? packageJson.dependencies?.pkg ?? null;
+
+let packageLockCache;
+let packageLockCacheLoaded = false;
+
+function readPackageLock() {
+  if (packageLockCacheLoaded) {
+    return packageLockCache;
+  }
+
+  packageLockCacheLoaded = true;
+
+  if (!fs.existsSync(packageLockPath)) {
+    packageLockCache = null;
+    return packageLockCache;
+  }
+
+  try {
+    packageLockCache = JSON.parse(fs.readFileSync(packageLockPath, "utf8"));
+  } catch (error) {
+    console.warn(`⚠️  Failed to parse package-lock.json: ${error.message}`);
+    packageLockCache = null;
+  }
+
+  return packageLockCache;
+}
+
+function getLockedDependencyVersion(name) {
+  const lock = readPackageLock();
+
+  if (!lock) {
+    return null;
+  }
+
+  if (lock.packages && lock.packages[`node_modules/${name}`]?.version) {
+    return lock.packages[`node_modules/${name}`].version;
+  }
+
+  if (lock.dependencies && lock.dependencies[name]) {
+    const dep = lock.dependencies[name];
+    if (typeof dep.version === "string" && dep.version.length > 0) {
+      return dep.version.replace(/^npm:/, "");
+    }
+  }
+
+  return null;
+}
+
+function createPkgFallbackConfig() {
+  if (!pkgVersionSpec) {
+    return {
+      args: ["--yes", "pkg"],
+      description: "npx --yes pkg",
+    };
+  }
+
+  const trimmedSpec = pkgVersionSpec.trim();
+  let pinnedVersion = trimmedSpec;
+
+  if (/^[~^]/.test(trimmedSpec)) {
+    pinnedVersion = getLockedDependencyVersion("pkg") ?? trimmedSpec.slice(1);
+  }
+
+  const npxSpec = `pkg@${pinnedVersion}`;
+
+  return {
+    args: ["--yes", npxSpec],
+    description: `npx --yes ${npxSpec}`,
+  };
+}
+
+const pkgFallbackConfig = createPkgFallbackConfig();
 
 const pkgBin = resolveBin("pkg", {
   installCommand: "npm install --save-dev pkg",
   fallback: {
     command: process.platform === "win32" ? "npx.cmd" : "npx",
-    args: ["--yes", pkgVersionSpec ? `pkg@${pkgVersionSpec}` : "pkg"],
-    description: pkgVersionSpec ? `npx --yes pkg@${pkgVersionSpec}` : "npx --yes pkg",
+    args: pkgFallbackConfig.args,
+    description: pkgFallbackConfig.description,
   },
 });
 
