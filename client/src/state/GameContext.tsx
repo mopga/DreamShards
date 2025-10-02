@@ -28,12 +28,17 @@ interface DialogueSession {
   currentId: string;
 }
 
+type RoomState = {
+  shardCollected?: boolean;
+};
+
 export interface AppState extends GameState {
   mode: GameMode;
   dialogue?: DialogueSession;
   activeEncounterId?: string;
   log: string[];
   skillUnlockQueue: SkillUnlockNotification[];
+  roomStates: Record<string, RoomState>;
 }
 
 export interface CombatResolution {
@@ -89,6 +94,7 @@ function createInitialState(): AppState {
     companionLevel: progression.level,
     unlockedSkills,
     skillUnlockQueue: [],
+    roomStates: createInitialRoomStates(flags),
   };
 }
 
@@ -105,6 +111,14 @@ function findNextShardSlot(flags: Record<string, boolean>) {
     if (!flags[key]) return key;
   }
   return undefined;
+}
+
+function createInitialRoomStates(flags: Record<string, boolean>) {
+  return palaceLayout.rooms.reduce<Record<string, RoomState>>((acc, room) => {
+    const shardCollected = room.shardId ? Boolean(flags[room.shardId]) : false;
+    acc[room.id] = shardCollected ? { shardCollected: true } : {};
+    return acc;
+  }, {});
 }
 
 const MAX_LEVEL = Math.max(1, progressionLevels.length - 1);
@@ -327,20 +341,53 @@ function reducer(state: AppState, action: any): AppState {
         dialogue: { ...dialogue, currentId: nextId },
       };
     }
-    case "MOVE_ROOM":
-      return { ...state, location: { roomId: action.payload } };
+    case "MOVE_ROOM": {
+      const roomId: string = action.payload;
+      const targetRoom = palaceLayout.rooms.find((entry) => entry.id === roomId);
+      let mode: GameMode = "exploration";
+      let activeEncounterId: string | undefined;
+
+      if (targetRoom?.type === "shard" && targetRoom.guardEncounter) {
+        const guardCleared = state.flags[`encounter_${targetRoom.guardEncounter}_cleared`];
+        const shardCollected =
+          state.roomStates[targetRoom.id]?.shardCollected ||
+          (targetRoom.shardId ? state.flags[targetRoom.shardId] : false);
+
+        if (!guardCleared && !shardCollected) {
+          mode = "combat";
+          activeEncounterId = targetRoom.guardEncounter;
+        }
+      }
+
+      return {
+        ...state,
+        location: { roomId },
+        mode,
+        activeEncounterId,
+      };
+    }
     case "COLLECT_SHARD": {
       const shardId: string = action.payload;
       if (state.flags[shardId]) return state;
       const flags = { ...state.flags, [shardId]: true };
       const shardsCollected = countShards(flags);
       const unlockUpdate = recalculateSkillUnlockState(state, { flags, shardsCollected });
+      const roomId = state.location.roomId;
+      const currentRoom = palaceLayout.rooms.find((entry) => entry.id === roomId);
+      const shardCollectedInRoom = currentRoom?.shardId === shardId;
+      const roomStates = shardCollectedInRoom
+        ? {
+            ...state.roomStates,
+            [roomId]: { ...(state.roomStates[roomId] ?? {}), shardCollected: true },
+          }
+        : state.roomStates;
       return {
         ...state,
         flags,
         shardsCollected,
         unlockedSkills: unlockUpdate.unlockedSkills,
         skillUnlockQueue: unlockUpdate.skillUnlockQueue,
+        roomStates,
         log: [...state.log, `Collected ${shardId}.`].slice(-20),
       };
     }
@@ -356,12 +403,33 @@ function reducer(state: AppState, action: any): AppState {
       let companionLevel = state.companionLevel ?? progression.level;
       let unlockedSkills = state.unlockedSkills ?? {};
       let skillUnlockQueue = state.skillUnlockQueue ?? [];
+      let roomStates = state.roomStates;
 
       if (victory) {
         const clearedFlag = `encounter_${encounterId}_cleared`;
         flags = { ...flags, [clearedFlag]: true };
         inventory = applyItemRewards(inventory, rewards?.items);
-        if (rewards?.shards) {
+        const guardRoom = palaceLayout.rooms.find((room) => room.guardEncounter === encounterId);
+        let shardAwarded = false;
+
+        if (guardRoom) {
+          roomStates = {
+            ...roomStates,
+            [guardRoom.id]: {
+              ...(roomStates[guardRoom.id] ?? {}),
+              shardCollected: true,
+            },
+          };
+
+          if (guardRoom.shardId && !flags[guardRoom.shardId]) {
+            flags = { ...flags, [guardRoom.shardId]: true };
+            log = [...log, `Collected ${guardRoom.shardId}.`].slice(-20);
+          }
+
+          shardAwarded = true;
+        }
+
+        if (rewards?.shards && !shardAwarded) {
           for (let i = 0; i < rewards.shards; i += 1) {
             const slot = findNextShardSlot(flags);
             if (slot) {
@@ -418,6 +486,7 @@ function reducer(state: AppState, action: any): AppState {
         activeEncounterId: undefined,
         inventory,
         log,
+        roomStates,
         dialogue:
           mode === "dialogue"
             ? { scriptId: "beach" as const, nodes: dialogueBeach, currentId: "start" }
@@ -425,15 +494,31 @@ function reducer(state: AppState, action: any): AppState {
       };
     }
     case "SET_FLAG": {
-      const flags = { ...state.flags, [action.payload.key]: action.payload.value };
+      const { key, value } = action.payload as { key: string; value: boolean };
+      const flags = { ...state.flags, [key]: value };
       const shardsCollected = countShards(flags);
       const unlockUpdate = recalculateSkillUnlockState(state, { flags, shardsCollected });
+      let roomStates = state.roomStates;
+
+      if (value) {
+        const shardRoom = palaceLayout.rooms.find((room) => room.shardId === key);
+        if (shardRoom) {
+          roomStates = {
+            ...roomStates,
+            [shardRoom.id]: {
+              ...(roomStates[shardRoom.id] ?? {}),
+              shardCollected: true,
+            },
+          };
+        }
+      }
       return {
         ...state,
         flags,
         shardsCollected,
         unlockedSkills: unlockUpdate.unlockedSkills,
         skillUnlockQueue: unlockUpdate.skillUnlockQueue,
+        roomStates,
       };
     }
     case "ADD_LOG":
@@ -456,6 +541,7 @@ function reducer(state: AppState, action: any): AppState {
       const flags = snapshot.flags ?? base.flags;
       const progression = snapshot.progression ?? base.progression;
       const shardsCollected = snapshot.shardsCollected ?? countShards(flags);
+      const roomStates = snapshot.roomStates ?? createInitialRoomStates(flags);
       const evaluation = evaluateSkillUnlocks({
         unlockedSkills: snapshot.unlockedSkills ?? base.unlockedSkills,
         progression,
@@ -472,6 +558,7 @@ function reducer(state: AppState, action: any): AppState {
         companionLevel: snapshot.companionLevel ?? progression.level,
         unlockedSkills: evaluation.unlockedSkills,
         skillUnlockQueue: snapshot.skillUnlockQueue ?? [],
+        roomStates,
         heroName: snapshot.heroName || "",
         dialogue:
           snapshot.mode === "dialogue"

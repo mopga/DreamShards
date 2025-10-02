@@ -60,7 +60,11 @@ function formatRoomId(id: string) {
 
 export function ExplorationView() {
   const { state, moveToRoom, collectShard, startEncounter, openDialogue } = useGame();
-  const room = roomIndex.get(state.location.roomId);
+  const baseRoom = roomIndex.get(state.location.roomId);
+  const roomState = baseRoom ? state.roomStates[baseRoom.id] : undefined;
+  const room = baseRoom
+    ? ({ ...baseRoom, ...roomState } as typeof baseRoom & { shardCollected?: boolean })
+    : undefined;
 
   const edges = useMemo(() => {
     const connections: Array<[string, string]> = [];
@@ -81,11 +85,11 @@ export function ExplorationView() {
     return <p className="text-rose-200">The palace cannot remember this chamber.</p>;
   }
 
-  const shardAvailable = room.shardId && !state.flags[room.shardId];
   const guardEncounter = getEncounter(room.guardEncounter);
   const guardCleared = guardEncounter
     ? state.flags[`encounter_${guardEncounter.id}_cleared`]
     : false;
+  const shardAvailable = room.shardId && !state.flags[room.shardId] && guardCleared;
 
   const bossEncounter = getEncounter(palaceLayout.bossEncounterId);
   const bossCleared = bossEncounter
