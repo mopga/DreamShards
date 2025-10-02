@@ -1,4 +1,4 @@
-﻿import React, { useEffect } from "react";
+import React, { useEffect } from "react";
 import { GameProvider, useGame } from "@/state/GameContext";
 import { MainMenu } from "@/components/MainMenu";
 import { SkillUnlockModal } from "@/features/progression/SkillUnlockModal";
@@ -6,7 +6,13 @@ import { DialogueView } from "@/features/dialogue/DialogueView";
 import { ExplorationView } from "@/features/exploration/ExplorationView";
 import { CombatView } from "@/features/combat/CombatView";
 import { EndingView } from "@/components/EndingView";
-import { loadSnapshot, saveSnapshot, pushSnapshotToServer } from "@/features/save/saveSystem";
+import {
+  loadSnapshot,
+  saveSnapshot,
+  pushSnapshotToServer,
+  subscribeToSnapshotChange,
+  type SaveFile,
+} from "@/features/save/saveSystem";
 import { WorldIntro } from "@/features/intro/WorldIntro";
 import { BirthIntro } from "@/features/intro/BirthIntro";
 import { BeachArrival } from "@/features/intro/BeachArrival";
@@ -71,6 +77,7 @@ function DreamShell() {
 function TopBar() {
   const { state, hydrate } = useGame();
   const { t, toggleLocale, locale } = useLocale();
+  const [snapshot, setSnapshot] = React.useState<SaveFile | null>(() => loadSnapshot());
   const modeKey = (`mode_${state.mode}`) as TranslationKey;
   const modeLabel = t(modeKey);
   const shardsLabel = t("shardsLabel");
@@ -82,12 +89,18 @@ function TopBar() {
   const xpDisplay = nextThreshold !== null ? `${progression.xp}/${nextThreshold}` : `${progression.xp}`;
   const summaryLine = `${modeLabel} | ${state.shardsCollected}/3 ${shardsLabel} | ${levelLabel} ${progression.level} | ${xpDisplay} ${xpLabel}`;
 
+  React.useEffect(() => {
+    const unsubscribe = subscribeToSnapshotChange(setSnapshot);
+    return unsubscribe;
+  }, []);
+
+  const hasSnapshot = Boolean(snapshot);
+
   const handleSave = () => {
     saveSnapshot(state);
   };
 
   const handleLoad = () => {
-    const snapshot = loadSnapshot();
     if (snapshot) {
       hydrate(snapshot.state);
     }
@@ -111,7 +124,12 @@ function TopBar() {
       </div>
       <div className="flex flex-wrap items-center gap-2">
         <ToolbarButton icon={<Save size={16} />} label={t("saveLocal")} onClick={handleSave} />
-        <ToolbarButton icon={<Download size={16} />} label={t("loadLocal")} onClick={handleLoad} />
+        <ToolbarButton
+          icon={<Download size={16} />}
+          label={t("loadLocal")}
+          onClick={handleLoad}
+          disabled={!hasSnapshot}
+        />
         <ToolbarButton icon={<Upload size={16} />} label={t("pushRemote")} onClick={handleRemoteSave} />
         <button
           onClick={toggleLocale}
@@ -129,15 +147,18 @@ function ToolbarButton({
   icon,
   label,
   onClick,
+  disabled,
 }: {
   icon: React.ReactNode;
   label: string;
   onClick: () => void;
+  disabled?: boolean;
 }) {
   return (
     <button
-      onClick={onClick}
-      className="flex items-center gap-2 rounded-full border border-slate-400/30 bg-slate-800/40 px-3 py-1.5 text-xs uppercase tracking-widest text-slate-200 transition hover:border-indigo-300/60 hover:bg-indigo-500/20"
+      onClick={disabled ? undefined : onClick}
+      disabled={disabled}
+      className={`flex items-center gap-2 rounded-full border border-slate-400/30 bg-slate-800/40 px-3 py-1.5 text-xs uppercase tracking-widest text-slate-200 transition hover:border-indigo-300/60 hover:bg-indigo-500/20 ${disabled ? "cursor-not-allowed opacity-40 hover:border-slate-400/30 hover:bg-slate-800/40" : ""}`}
     >
       {icon}
       <span>{label}</span>

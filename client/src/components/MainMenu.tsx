@@ -1,19 +1,31 @@
-﻿import React from "react";
-import { loadSnapshot } from "@/features/save/saveSystem";
+import React from "react";
+import {
+  loadSnapshot,
+  subscribeToSnapshotChange,
+  type SaveFile,
+} from "@/features/save/saveSystem";
 import { useGame } from "@/state/GameContext";
 import { useLocale } from "@/state/LocaleContext";
 
 export function MainMenu() {
   const { startNewGame, resetToMenu, hydrate, addLogEntry } = useGame();
   const { t } = useLocale();
+  const [snapshot, setSnapshot] = React.useState<SaveFile | null>(null);
+
+  React.useEffect(() => {
+    setSnapshot(loadSnapshot());
+    const unsubscribe = subscribeToSnapshotChange(setSnapshot);
+    return unsubscribe;
+  }, []);
 
   const handleContinue = () => {
-    const snapshot = loadSnapshot();
     if (snapshot) {
       addLogEntry(t("menuLogResume"));
       hydrate(snapshot.state);
     }
   };
+
+  const hasSnapshot = Boolean(snapshot);
 
   return (
     <div className="relative flex w-full flex-col items-center justify-center gap-10 py-16 text-center">
@@ -34,7 +46,7 @@ export function MainMenu() {
         <MenuButton onClick={startNewGame} variant="primary">
           {t("begin")}
         </MenuButton>
-        <MenuButton onClick={handleContinue} variant="secondary">
+        <MenuButton onClick={handleContinue} variant="secondary" disabled={!hasSnapshot}>
           {t("continue")}
         </MenuButton>
         <MenuButton onClick={resetToMenu} variant="ghost">
@@ -51,10 +63,12 @@ function MenuButton({
   children,
   onClick,
   variant,
+  disabled,
 }: {
   children: React.ReactNode;
   onClick: () => void;
   variant: MenuVariant;
+  disabled?: boolean;
 }) {
   const base =
     "rounded-full px-10 py-3 text-lg font-medium transition-transform duration-300 hover:scale-[1.03] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2";
@@ -68,7 +82,13 @@ function MenuButton({
   };
 
   return (
-    <button className={`${base} ${styles[variant]}`} onClick={onClick}>
+    <button
+      className={`${base} ${styles[variant]} ${
+        disabled ? "cursor-not-allowed opacity-50 hover:scale-100" : ""
+      }`}
+      onClick={disabled ? undefined : onClick}
+      disabled={disabled}
+    >
       {children}
     </button>
   );
