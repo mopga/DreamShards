@@ -9,7 +9,7 @@
     "typecheck": "tsc --build tsconfig.json",
     "dev": "concurrently -k \"npm:dev:renderer\" \"npm:dev:main\"",
     "dev:renderer": "vite dev --config ../vite.config.ts",
-    "dev:main": "wait-on tcp:5173 && electron -r ts-node/register/transpile-only -r tsconfig-paths/register ./src/main/index.ts",
+    "dev:main": "wait-on tcp:5173 && cross-env NODE_OPTIONS=\"--loader ts-node/esm --loader tsconfig-paths/register --no-warnings\" electron ./src/main/index.ts",
     "build": "npm run clean && npm run build:renderer && npm run copy:public && npm run build:main && npm run build:preload",
     "build:renderer": "vite build --config ../vite.config.ts",
     "copy:public": "node ./scripts/copy-public.cjs",
@@ -19,6 +19,7 @@
   },
   "devDependencies": {
     "concurrently": "^8.2.2",
+    "cross-env": "^7.0.3",
     "electron": "^33.2.1",
     "electron-builder": "^24.13.3",
     "ts-node": "^10.9.2",
