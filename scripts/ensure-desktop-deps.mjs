@@ -1,7 +1,7 @@
 import { existsSync, rmSync } from 'fs';
 import { dirname, resolve } from 'path';
 import { fileURLToPath } from 'url';
-import { spawn } from 'child_process';
+import { spawn, spawnSync } from 'child_process';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const projectRoot = resolve(__dirname, '..');
@@ -17,11 +17,48 @@ if (existsSync(concurrentlyBin)) {
 console.log('Desktop dependencies not found. Installing desktop workspace...');
 
 if (existsSync(desktopNodeModules)) {
+  const removeWithRmSync = () => {
+    rmSync(desktopNodeModules, {
+      recursive: true,
+      force: true,
+      maxRetries: 5,
+      retryDelay: 100,
+    });
+  };
+
+  const tryWindowsFallback = () => {
+    if (process.platform !== 'win32') {
+      return;
+    }
+
+    const command = 'cmd.exe';
+    const args = ['/d', '/s', '/c', `rmdir /s /q "${desktopNodeModules}"`];
+
+    spawnSync(command, args, { stdio: 'inherit' });
+  };
+
   try {
     console.log('Removing stale desktop node_modules directory...');
-    rmSync(desktopNodeModules, { recursive: true, force: true, maxRetries: 3 });
+    removeWithRmSync();
   } catch (error) {
-    console.warn('Failed to remove desktop node_modules before reinstalling:', error);
+    console.warn('Failed to remove desktop node_modules with rmSync. Trying fallback...', error);
+
+    try {
+      tryWindowsFallback();
+
+      if (existsSync(desktopNodeModules)) {
+        // Retry with rmSync in case the fallback cleared the offending files.
+        removeWithRmSync();
+      }
+    } catch (fallbackError) {
+      console.warn('Fallback removal of desktop node_modules failed:', fallbackError);
+    }
+  }
+
+  if (existsSync(desktopNodeModules)) {
+    console.warn(
+      'Desktop node_modules directory still exists after cleanup attempts. Desktop dependency installation may fail.'
+    );
   }
 }
 
