@@ -71,17 +71,17 @@ const roomMetadata: Record<string, RoomMetadata> = {
 };
 
 const roomPositions: Record<string, { x: number; y: number }> = {
-  r1: { x: 8, y: 54 },
-  r2: { x: 18, y: 54 },
-  r3: { x: 28, y: 54 },
-  r4: { x: 38, y: 54 },
-  r5: { x: 48, y: 54 },
-  r6: { x: 58, y: 54 },
-  r7: { x: 68, y: 54 },
-  r8: { x: 78, y: 54 },
-  r9: { x: 88, y: 54 },
-  r10: { x: 96, y: 42 },
-  boss: { x: 96, y: 24 },
+  r1: { x: 14, y: 22 },
+  r2: { x: 36, y: 22 },
+  r3: { x: 58, y: 22 },
+  r4: { x: 78, y: 28 },
+  r5: { x: 78, y: 46 },
+  r6: { x: 56, y: 46 },
+  r7: { x: 34, y: 46 },
+  r8: { x: 12, y: 46 },
+  r9: { x: 12, y: 68 },
+  r10: { x: 34, y: 68 },
+  boss: { x: 56, y: 84 },
 };
 
 const difficultyLabels: Record<string, string> = {
