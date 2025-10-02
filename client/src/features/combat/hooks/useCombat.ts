@@ -321,37 +321,7 @@ function preparePartyActors(
   });
 }
 
-function scaleEncounter(encounter: EncounterDefinition, shardsCollected: number): EncounterDefinition {
-  if (!encounter) {
-    return encounter;
-  }
-  if (shardsCollected <= 0) {
-    return {
-      ...encounter,
-      enemies: encounter.enemies.map((enemy) => scaleActor(enemy, 1)),
-    };
-  }
-  const modifier = 1 + shardsCollected * DIFFICULTY_PER_SHARD;
-  return {
-    ...encounter,
-    enemies: encounter.enemies.map((enemy) => scaleActor(enemy, modifier)),
-  };
-}
 
-function scaleActor(actor: Actor, modifier: number): Actor {
-  return {
-    ...actor,
-    stats: {
-      ...actor.stats,
-      maxHP: Math.round(actor.stats.maxHP * modifier),
-      str: Math.max(1, Math.round(actor.stats.str * modifier)),
-      mag: Math.max(1, Math.round(actor.stats.mag * modifier)),
-    },
-    skills: [...actor.skills],
-    weaknesses: actor.weaknesses ? [...actor.weaknesses] : undefined,
-    resistances: actor.resistances ? [...actor.resistances] : undefined,
-  };
-}
 
 function chooseEnemyAction(state: CombatState): CombatAction | null {
   const activeId = state.activeActorId;
