@@ -1,0 +1,12 @@
+{
+  "scripts": [
+    "node_modules/drizzle-orm/*.cjs",
+    "node_modules/drizzle-orm/sql/**/*.cjs",
+    "node_modules/drizzle-orm/query-builders/**/*.cjs",
+    "node_modules/drizzle-orm/better-sqlite3/**/*.cjs",
+    "node_modules/drizzle-orm/sqlite-core/**/*.cjs"
+  ],
+  "assets": [
+    "node_modules/drizzle-orm/package.json"
+  ]
+}
