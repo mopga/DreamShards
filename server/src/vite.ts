@@ -5,7 +5,6 @@ import { fileURLToPath } from "url";
 import { createServer as createViteServer, createLogger, type ServerOptions } from "vite";
 import { type Server } from "http";
 import { nanoid } from "nanoid";
-import viteConfig from "../../vite.config";
 
 const moduleFilename =
   typeof __filename === "string"
@@ -32,6 +31,8 @@ export async function setupVite(app: Express, server: Server) {
     hmr: { server },
     allowedHosts: true,
   };
+
+  const { default: viteConfig } = await import("../../vite.config.ts");
 
   const vite = await createViteServer({
     ...viteConfig,
