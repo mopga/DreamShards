@@ -88,7 +88,10 @@ export function useCombat(): UseCombatResult {
   useEffect(() => {
     if (!combat || !encounter || !combat.ended || resolvedRef.current) return;
     resolvedRef.current = true;
-    const lastMessages = combat.eventsLog.slice(-6).map((event) => event.message ?? event.type);
+    const lastMessages = combat.eventsLog
+      .slice(-6)
+      .map((event) => event.message)
+      .filter((message): message is string => Boolean(message) && !message.startsWith("combat.events."));
     resolveEncounter({
       encounterId: encounter.id,
       victory: combat.winner === "allies",
