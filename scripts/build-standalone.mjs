@@ -9,6 +9,7 @@ const __dirname = path.dirname(__filename);
 const rootDir = path.resolve(__dirname, "..");
 const distDir = path.join(rootDir, "dist");
 const serverBundle = path.join(distDir, "server", "index.js");
+const serverStandaloneBundle = path.join(distDir, "server", "index.cjs");
 const publicDir = path.join(distDir, "public");
 const outputRoot = path.join(rootDir, "standalone", "win-x64");
 const outputExe = path.join(outputRoot, "DreamShards.exe");
@@ -33,6 +34,26 @@ function ensureBuildArtifacts() {
 
   if (!fs.existsSync(serverBundle) || !fs.existsSync(publicDir)) {
     throw new Error("Build artifacts were not produced. Check the build output for details.");
+  }
+}
+
+function buildCommonJsServerBundle() {
+  console.log("⚙️  Creating CommonJS server bundle for pkg...");
+  const relativeOutput = path.relative(rootDir, serverStandaloneBundle);
+  const esbuildCommand = [
+    "npx",
+    "esbuild",
+    path.join("server", "src", "index.ts"),
+    "--platform=node",
+    "--packages=external",
+    "--bundle",
+    "--format=cjs",
+    `--outfile=${relativeOutput}`,
+  ].join(" ");
+  run(esbuildCommand);
+
+  if (!fs.existsSync(serverStandaloneBundle)) {
+    throw new Error("Failed to create CommonJS server bundle for pkg.");
   }
 }
 
@@ -64,7 +85,7 @@ function createExecutable() {
   const pkgCommand = [
     "npx",
     "pkg",
-    serverBundle,
+    path.relative(rootDir, serverStandaloneBundle),
     "--target",
     pkgTarget,
     "--output",
@@ -75,6 +96,7 @@ function createExecutable() {
 
 function main() {
   ensureBuildArtifacts();
+  buildCommonJsServerBundle();
   prepareOutputDirectory();
   copyStaticAssets();
   createExecutable();
