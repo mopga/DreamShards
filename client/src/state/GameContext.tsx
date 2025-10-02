@@ -98,7 +98,6 @@ function appendAllowedLog(log: string[], message: string): string[] {
   return [...log, message].slice(-20);
 }
 
-codex/filter-log-messages-in-game-jdrcnp
 function appendAllowedLogs(log: string[], messages: readonly string[]): string[] {
   if (!messages.length) {
     return log;
@@ -106,8 +105,6 @@ function appendAllowedLogs(log: string[], messages: readonly string[]): string[]
   return messages.reduce((current, message) => appendAllowedLog(current, message), log);
 }
 
-
-main
 function createInitialState(): AppState {
   const progression: ProgressionState = { level: 1, xp: 0 };
   const flags: Record<string, boolean> = {};
@@ -432,18 +429,11 @@ function reducer(state: AppState, action: any): AppState {
     case "START_ENCOUNTER":
       return { ...state, mode: "combat", activeEncounterId: action.payload };
     case "RESOLVE_COMBAT": {
-codex/filter-log-messages-in-game-jdrcnp
       const { encounterId, victory, rewards, messages } = action.payload as CombatResolution;
       let flags = state.flags;
       let inventory = state.inventory;
       let mode: GameMode = "exploration";
       let log = appendAllowedLogs(state.log, messages ?? []);
-      const { encounterId, victory, rewards } = action.payload as CombatResolution;
-      let flags = state.flags;
-      let inventory = state.inventory;
-      let mode: GameMode = "exploration";
-      let log = state.log;
-main
       let progression = state.progression ?? { level: 1, xp: 0 };
       let companionLevel = state.companionLevel ?? progression.level;
       let unlockedSkills = state.unlockedSkills ?? {};
@@ -624,33 +614,33 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(reducer, initialState);
 
   const value = useMemo<GameContextValue>(
-  () => ({
-    state,
-    startNewGame: () => dispatch({ type: "START_NEW_GAME" }),
-    completeWorldIntro: () => dispatch({ type: "COMPLETE_WORLD_INTRO" }),
-    completeBirthIntro: () => dispatch({ type: "COMPLETE_BIRTH_INTRO" }),
-    completeBeachIntro: () => dispatch({ type: "COMPLETE_BEACH_INTRO" }),
-    confirmHeroName: (name) => dispatch({ type: "SET_HERO_NAME", payload: name }),
-    setMode: (mode) => dispatch({ type: "SET_MODE", payload: mode }),
-    openDialogue: (
-      session = { scriptId: "beach" as const, nodes: dialogueBeach, currentId: "start" },
-    ) => dispatch({ type: "OPEN_DIALOGUE", payload: session }),
-    advanceDialogue: (nextId, setFlags) =>
-      dispatch({ type: "ADVANCE_DIALOGUE", payload: { nextId, setFlags } }),
-    moveToRoom: (roomId) => dispatch({ type: "MOVE_ROOM", payload: roomId }),
-    collectShard: (shardId) => dispatch({ type: "COLLECT_SHARD", payload: shardId }),
-    startEncounter: (encounterId) => dispatch({ type: "START_ENCOUNTER", payload: encounterId }),
-    resolveCombat: (result) => dispatch({ type: "RESOLVE_COMBAT", payload: result }),
-    setFlag: (key, value) => dispatch({ type: "SET_FLAG", payload: { key, value } }),
-    addLogEntry: (message) => dispatch({ type: "ADD_LOG", payload: message }),
-    adjustInventory: (itemId, delta) =>
-      dispatch({ type: "ADJUST_INVENTORY", payload: { itemId, delta } }),
-    hydrate: (snapshot) => dispatch({ type: "LOAD_SNAPSHOT", payload: snapshot }),
-    acknowledgeSkillUnlock: () => dispatch({ type: "CONSUME_SKILL_UNLOCK" }),
-    resetToMenu: () => dispatch({ type: "RESET_TO_MENU" }),
-  }),
-  [state],
-);
+    () => ({
+      state,
+      startNewGame: () => dispatch({ type: "START_NEW_GAME" }),
+      completeWorldIntro: () => dispatch({ type: "COMPLETE_WORLD_INTRO" }),
+      completeBirthIntro: () => dispatch({ type: "COMPLETE_BIRTH_INTRO" }),
+      completeBeachIntro: () => dispatch({ type: "COMPLETE_BEACH_INTRO" }),
+      confirmHeroName: (name) => dispatch({ type: "SET_HERO_NAME", payload: name }),
+      setMode: (mode) => dispatch({ type: "SET_MODE", payload: mode }),
+      openDialogue: (
+        session = { scriptId: "beach" as const, nodes: dialogueBeach, currentId: "start" },
+      ) => dispatch({ type: "OPEN_DIALOGUE", payload: session }),
+      advanceDialogue: (nextId, setFlags) =>
+        dispatch({ type: "ADVANCE_DIALOGUE", payload: { nextId, setFlags } }),
+      moveToRoom: (roomId) => dispatch({ type: "MOVE_ROOM", payload: roomId }),
+      collectShard: (shardId) => dispatch({ type: "COLLECT_SHARD", payload: shardId }),
+      startEncounter: (encounterId) => dispatch({ type: "START_ENCOUNTER", payload: encounterId }),
+      resolveCombat: (result) => dispatch({ type: "RESOLVE_COMBAT", payload: result }),
+      setFlag: (key, value) => dispatch({ type: "SET_FLAG", payload: { key, value } }),
+      addLogEntry: (message) => dispatch({ type: "ADD_LOG", payload: message }),
+      adjustInventory: (itemId, delta) =>
+        dispatch({ type: "ADJUST_INVENTORY", payload: { itemId, delta } }),
+      hydrate: (snapshot) => dispatch({ type: "LOAD_SNAPSHOT", payload: snapshot }),
+      acknowledgeSkillUnlock: () => dispatch({ type: "CONSUME_SKILL_UNLOCK" }),
+      resetToMenu: () => dispatch({ type: "RESET_TO_MENU" }),
+    }),
+    [state],
+  );
 
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;
 }

@@ -91,13 +91,10 @@ export function useCombat(): UseCombatResult {
     const lastMessages = combat.eventsLog
       .slice(-6)
       .map((event) => event.message)
- codex/filter-log-messages-in-game-jdrcnp
       .filter((message): message is string => {
         if (!message) return false;
         return !message.startsWith("combat.events.");
       });
-      .filter((message): message is string => Boolean(message) && !message.startsWith("combat.events."));
-main
     resolveEncounter({
       encounterId: encounter.id,
       victory: combat.winner === "allies",
