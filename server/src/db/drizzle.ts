@@ -11,7 +11,15 @@ const defaultPath = process.env.DATABASE_FILE
 
 fs.mkdirSync(path.dirname(defaultPath), { recursive: true });
 
-const sqlite = new Database(defaultPath);
+const sqlite = (() => {
+  const nativeBinding =
+    typeof process.pkg !== "undefined"
+      ? path.join(path.dirname(process.execPath), "better_sqlite3.node")
+      : undefined;
+
+  const options = nativeBinding ? { nativeBinding } : undefined;
+  return new Database(defaultPath, options);
+})();
 
 function ensureSchema(database: typeof sqlite) {
   database.exec(`

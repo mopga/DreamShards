@@ -16,9 +16,9 @@ shared/             Cross-cutting types and JSON content
 ```
 
 Key gameplay content lives under `shared/content/`:
-- `palaceFear.json` – room graph for the Palace of Fear.
-- `dialogueBeach.json` – branching Lister dialogue.
-- `enemies.json`, `skills.json` – combat actors and abilities.
+- `palaceFear.json` â€“ room graph for the Palace of Fear.
+- `dialogueBeach.json` â€“ branching Lister dialogue.
+- `enemies.json`, `skills.json` â€“ combat actors and abilities.
 
 ## Prerequisites
 
@@ -67,13 +67,27 @@ npm run start
 ```
 Runs the bundled Express server (`node dist/server/index.js`) which serves static assets from `server/public`.
 
+### Windows Standalone Build
+
+```bash
+npm run build:standalone:win
+```
+
+Generates a self-contained Windows distribution in `standalone/win-x64`:
+
+1. Runs the standard production build if `dist/` is missing.
+2. Copies the client bundle, bundled server, SQLite database, and native `better_sqlite3.node` binary into the standalone folder.
+3. Uses [`pkg`](https://github.com/vercel/pkg) to compile `dist/server/index.js` into `DreamShards.exe` targeting Node.js 18 on Windows x64.
+
+The resulting folder contains `DreamShards.exe`, the `public/` assets directory, a `server/dreamshards.db` starter database, and the `better_sqlite3.node` native module required by SQLite. Ship or zip the entire folder to run the game on Windows without a separate Node.js installation.
+
 ## Gameplay Flow
 
-1. **Main Menu** – start a new dream or load the latest autosave.
-2. **Dialogue** – converse with Lister on the Dream Beach; choices toggle flags and unlock skills.
-3. **Exploration** – move through the Palace of Fear rooms, collect shards, trigger encounters, and initiate the boss gate.
-4. **Combat** – turn-based system with weakness bonuses, status effects (Vulnerable, Weakened, Guarded), skills, and items.
-5. **Ending** – post-boss epilogue reflects shard count and key decisions.
+1. **Main Menu** â€“ start a new dream or load the latest autosave.
+2. **Dialogue** â€“ converse with Lister on the Dream Beach; choices toggle flags and unlock skills.
+3. **Exploration** â€“ move through the Palace of Fear rooms, collect shards, trigger encounters, and initiate the boss gate.
+4. **Combat** â€“ turn-based system with weakness bonuses, status effects (Vulnerable, Weakened, Guarded), skills, and items.
+5. **Ending** â€“ post-boss epilogue reflects shard count and key decisions.
 
 Auto-save runs whenever the game state changes outside the menu. Manual save/load buttons in the top bar call `localStorage`, and `Push to Shore` sends a snapshot to `/api/save` for future persistence work.
 
