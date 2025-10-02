@@ -1,0 +1,15 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "composite": true,
+    "module": "CommonJS",
+    "moduleResolution": "node16",
+    "target": "ES2022",
+    "lib": ["es2022", "dom"],
+    "rootDir": "./src/preload",
+    "outDir": "../dist/desktop/preload",
+    "noEmit": false,
+    "types": ["node", "electron"]
+  },
+  "include": ["src/preload/**/*.ts"]
+}

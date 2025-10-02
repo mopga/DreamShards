@@ -67,6 +67,26 @@ npm run start
 ```
 Runs the bundled Express server (`node dist/server/index.js`) which serves static assets from `server/public`.
 
+### Desktop Application
+
+The Electron wrapper lives in the `desktop/` workspace. It reuses the existing Vite renderer build and bundles dedicated `main`/`preload` processes.
+
+#### Desktop Development
+
+```bash
+npm run desktop:dev
+```
+
+Runs the Vite dev server alongside the Electron main process via `concurrently`. The command waits for the renderer (port `5173` by default) before launching Electron with TypeScript entry points.
+
+#### Desktop Build & Packaging
+
+```bash
+npm run desktop:build
+```
+
+Executes the full desktop pipeline: cleans previous artifacts, builds the renderer, compiles the `main` and `preload` scripts with `tsc`, and invokes `electron-builder` to produce distributables in `dist/`.
+
 ### Standalone Build
 
 ```bash
