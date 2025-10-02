@@ -12,8 +12,8 @@
     "postinstall": "npm run bootstrap:desktop",
     "bootstrap:desktop": "npm install --prefix desktop --production=false",
     "db:push": "drizzle-kit push --config server/drizzle.config.ts",
-    "desktop:dev": "npm run dev --prefix desktop",
-    "desktop:build": "npm run bootstrap:desktop && npm run package --prefix desktop"
+    "desktop:dev": "node scripts/ensure-desktop-deps.mjs && npm run dev --prefix desktop",
+    "desktop:build": "node scripts/ensure-desktop-deps.mjs && npm run package --prefix desktop"
   },
   "dependencies": {
     "@fontsource/inter": "^5.2.5",
