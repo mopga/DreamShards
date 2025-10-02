@@ -67,19 +67,21 @@ npm run start
 ```
 Runs the bundled Express server (`node dist/server/index.js`) which serves static assets from `server/public`.
 
-### Windows Standalone Build
+### Standalone Build
 
 ```bash
 npm run build:standalone:win
 ```
 
-Generates a self-contained Windows distribution in `standalone/win-x64`:
+Generates a self-contained distribution for the current platform (defaults to Windows x64 when run via the npm script):
 
 1. Runs the standard production build if `dist/` is missing.
 2. Copies the client bundle, bundled server, SQLite database, and native `better_sqlite3.node` binary into the standalone folder.
-3. Uses [`pkg`](https://github.com/vercel/pkg) to compile `dist/server/index.js` into `DreamShards.exe` targeting Node.js 18 on Windows x64.
+3. Uses [`pkg`](https://github.com/vercel/pkg) to compile `dist/server/index.js` into a platform-specific executable targeting Node.js 18.
 
-The resulting folder contains `DreamShards.exe`, the `public/` assets directory, a `server/dreamshards.db` starter database, and the `better_sqlite3.node` native module required by SQLite. Ship or zip the entire folder to run the game on Windows without a separate Node.js installation.
+To build for a different target explicitly, run the script directly and supply `--target <platform>-<arch>`, for example `node scripts/build-standalone.mjs --target win-x64` or `--target linux-arm64`. You can also pass `--platform` and `--arch` separately.
+
+The resulting folder contains the executable (`DreamShards.exe` on Windows, `DreamShards` elsewhere), the `public/` assets directory, a `server/dreamshards.db` starter database, and the `better_sqlite3.node` native module required by SQLite. Ship or zip the entire folder to run the game without a separate Node.js installation.
 
 ## Gameplay Flow
 
