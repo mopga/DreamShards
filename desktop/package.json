@@ -1,0 +1,29 @@
+{
+  "name": "dream-shards-desktop",
+  "version": "0.1.0",
+  "private": true,
+  "type": "commonjs",
+  "main": "dist/main/index.js",
+  "scripts": {
+    "clean": "rimraf ../dist/desktop",
+    "typecheck": "tsc --build tsconfig.json",
+    "dev": "concurrently -k \"npm:dev:renderer\" \"npm:dev:main\"",
+    "dev:renderer": "vite dev --config ../vite.config.ts",
+    "dev:main": "wait-on tcp:5173 && electron -r ts-node/register/transpile-only -r tsconfig-paths/register ./src/main/index.ts",
+    "build": "npm run clean && npm run build:renderer && npm run build:main && npm run build:preload",
+    "build:renderer": "vite build --config ../vite.config.ts",
+    "build:main": "tsc --project tsconfig.main.json",
+    "build:preload": "tsc --project tsconfig.preload.json",
+    "package": "npm run build && electron-builder"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "electron": "^33.2.1",
+    "electron-builder": "^24.13.3",
+    "rimraf": "^6.0.1",
+    "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.6.3",
+    "wait-on": "^7.2.0"
+  }
+}
