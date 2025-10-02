@@ -1,102 +1,77 @@
 {
   "rooms": [
     {
-      "id": "entry",
+      "id": "r1",
       "type": "entry",
-      "neighbors": [
-        "hall",
-        "gallery"
-      ]
+      "neighbors": ["r2"]
     },
     {
-      "id": "hall",
+      "id": "r2",
       "type": "combat",
-      "neighbors": [
-        "entry",
-        "library",
-        "guard_room"
-      ],
+      "neighbors": ["r1", "r3"],
       "encounterTable": "weak"
     },
     {
-      "id": "guard_room",
-      "type": "combat",
-      "neighbors": [
-        "hall",
-        "servants_room"
-      ],
+      "id": "r3",
+      "type": "shard",
+      "neighbors": ["r2", "r4"],
       "encounterTable": "mid",
+      "shardId": "shard1",
       "guardEncounter": "guard_watch"
     },
     {
-      "id": "library",
+      "id": "r4",
+      "type": "combat",
+      "neighbors": ["r3", "r5"],
+      "encounterTable": "mid"
+    },
+    {
+      "id": "r5",
       "type": "shard",
-      "shardId": "shard1",
-      "neighbors": [
-        "hall",
-        "vault"
-      ],
+      "neighbors": ["r4", "r6"],
       "encounterTable": "mid",
+      "shardId": "shard2",
       "guardEncounter": "guard1"
     },
     {
-      "id": "servants_room",
-      "type": "lore",
-      "neighbors": [
-        "guard_room",
-        "gallery"
-      ],
-      "encounterTable": "weak",
-      "loot": {
-        "items": [
-          { "id": "starlight_infusion", "qty": 1 }
-        ],
-        "actionLabel": "Обыскать комнату",
-        "logMessage": "Найдено: запечатанный флакон звездной эссенции."
-      }
+      "id": "r6",
+      "type": "combat",
+      "neighbors": ["r5", "r7"],
+      "encounterTable": "mid"
     },
     {
-      "id": "gallery",
+      "id": "r7",
       "type": "shard",
-      "shardId": "shard2",
-      "neighbors": [
-        "entry",
-        "vault",
-        "servants_room",
-        "royal_bedroom"
-      ],
-      "encounterTable": "mid",
+      "neighbors": ["r6", "r8"],
+      "encounterTable": "hard",
+      "shardId": "shard3",
       "guardEncounter": "guard2"
     },
     {
-      "id": "royal_bedroom",
+      "id": "r8",
       "type": "combat",
-      "neighbors": [
-        "gallery",
-        "vault"
-      ],
+      "neighbors": ["r7", "r9"],
+      "encounterTable": "hard"
+    },
+    {
+      "id": "r9",
+      "type": "shard",
+      "neighbors": ["r8", "r10"],
+      "encounterTable": "hard",
+      "shardId": "shard4",
+      "guardEncounter": "guard3"
+    },
+    {
+      "id": "r10",
+      "type": "combat",
+      "neighbors": ["r9", "boss"],
       "encounterTable": "hard",
       "guardEncounter": "guard_royal"
     },
     {
-      "id": "vault",
-      "type": "shard",
-      "shardId": "shard3",
-      "neighbors": [
-        "library",
-        "gallery",
-        "royal_bedroom",
-        "gate"
-      ],
-      "encounterTable": "hard",
-      "guardEncounter": "guard3"
-    },
-    {
-      "id": "gate",
+      "id": "boss",
       "type": "boss",
-      "neighbors": [
-        "vault"
-      ]
+      "neighbors": ["r10"]
     }
   ],
   "bossEncounterId": "boss_fear"

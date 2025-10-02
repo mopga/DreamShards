@@ -128,6 +128,12 @@ const encounterMaxChance = Math.min(
   Math.max(encounterBaseChance, encounterTablesConfig.maxChance ?? encounterBaseChance),
 );
 
+const shardIds = Array.from(
+  new Set(
+    palaceLayout.rooms.flatMap((room) => (room.shardId ? [room.shardId] : [])),
+  ),
+);
+
 function createInitialState(): AppState {
   const progression: ProgressionState = { level: 1, xp: 0 };
   const flags: Record<string, boolean> = {};
@@ -163,11 +169,12 @@ const initialState = createInitialState();
 const GameContext = createContext<GameContextValue | undefined>(undefined);
 
 function countShards(flags: Record<string, boolean>) {
-  return ["shard1", "shard2", "shard3"].reduce((acc, key) => (flags[key] ? acc + 1 : acc), 0);
+  if (!shardIds.length) return 0;
+  return shardIds.reduce((acc, key) => (flags[key] ? acc + 1 : acc), 0);
 }
 
 function findNextShardSlot(flags: Record<string, boolean>) {
-  for (const key of ["shard1", "shard2", "shard3"]) {
+  for (const key of shardIds) {
     if (!flags[key]) return key;
   }
   return undefined;
