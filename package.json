@@ -9,7 +9,7 @@
     "start": "NODE_ENV=production node dist/server/index.js",
     "build:standalone:win": "node scripts/build-standalone.mjs",
     "check": "tsc",
-    "postinstall": "npm install --prefix desktop",
+    "postinstall": "npm install --prefix desktop --include=dev",
     "db:push": "drizzle-kit push --config server/drizzle.config.ts",
     "desktop:dev": "npm run dev --prefix desktop",
     "desktop:build": "npm run package --prefix desktop"
