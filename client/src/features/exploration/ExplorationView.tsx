@@ -71,17 +71,17 @@ const roomMetadata: Record<string, RoomMetadata> = {
 };
 
 const roomPositions: Record<string, { x: number; y: number }> = {
-  r1: { x: 14, y: 22 },
-  r2: { x: 36, y: 22 },
-  r3: { x: 58, y: 22 },
-  r4: { x: 78, y: 28 },
-  r5: { x: 78, y: 46 },
-  r6: { x: 56, y: 46 },
-  r7: { x: 34, y: 46 },
-  r8: { x: 12, y: 46 },
-  r9: { x: 12, y: 68 },
-  r10: { x: 34, y: 68 },
-  boss: { x: 56, y: 84 },
+  r1: { x: 12, y: 12 },
+  r2: { x: 38, y: 12 },
+  r3: { x: 62, y: 12 },
+  r4: { x: 88, y: 12 },
+  r5: { x: 88, y: 37 },
+  r6: { x: 62, y: 37 },
+  r7: { x: 38, y: 37 },
+  r8: { x: 12, y: 37 },
+  r9: { x: 12, y: 63 },
+  r10: { x: 38, y: 63 },
+  boss: { x: 38, y: 88 },
 };
 
 const difficultyLabels: Record<string, string> = {
@@ -211,8 +211,8 @@ export function ExplorationView() {
             )}
           </div>
 
-          <div className="relative mx-auto w-full max-w-3xl">
-            <div className="relative aspect-[11/5] overflow-hidden rounded-lg border border-slate-800/60 bg-slate-950/80">
+          <div className="relative mx-auto w-full max-w-4xl">
+            <div className="relative aspect-[5/3] overflow-hidden rounded-lg border border-slate-800/60 bg-slate-950/80">
               <div
                 className="pointer-events-none absolute inset-0 opacity-25"
                 style={{
@@ -235,6 +235,7 @@ export function ExplorationView() {
                       y2={end.y}
                       stroke="url(#pathGradient)"
                       strokeWidth={2}
+                      strokeDasharray="6 4"
                       strokeLinecap="round"
                       opacity={0.45}
                     />
