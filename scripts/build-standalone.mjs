@@ -11,12 +11,150 @@ const distDir = path.join(rootDir, "dist");
 const serverBundle = path.join(distDir, "server", "index.js");
 const serverStandaloneBundle = path.join(distDir, "server", "index.cjs");
 const publicDir = path.join(distDir, "public");
-const outputRoot = path.join(rootDir, "standalone", "win-x64");
-const outputExe = path.join(outputRoot, "DreamShards.exe");
-const pkgTarget = "node18-win-x64";
-const sqliteBinary = path.join(rootDir, "node_modules", "better-sqlite3", "build", "Release", "better_sqlite3.node");
 const pkgNodeVersion = "18.5.0";
-let windowsSqliteBinaryBuffer = null;
+const sqliteBinary = path.join(
+  rootDir,
+  "node_modules",
+  "better-sqlite3",
+  "build",
+  "Release",
+  "better_sqlite3.node",
+);
+
+const PLATFORM_ALIASES = new Map([
+  ["win", "win32"],
+  ["windows", "win32"],
+  ["win32", "win32"],
+  ["linux", "linux"],
+  ["darwin", "darwin"],
+  ["mac", "darwin"],
+  ["macos", "darwin"],
+  ["osx", "darwin"],
+]);
+
+const ARCH_ALIASES = new Map([
+  ["x64", "x64"],
+  ["amd64", "x64"],
+  ["arm64", "arm64"],
+  ["aarch64", "arm64"],
+]);
+
+const SUPPORTED_PLATFORMS = {
+  win32: {
+    label: "win",
+    pkgPlatform: "win",
+    prebuildPlatform: "win32",
+    executableSuffix: ".exe",
+  },
+  linux: {
+    label: "linux",
+    pkgPlatform: "linux",
+    prebuildPlatform: "linux",
+    executableSuffix: "",
+  },
+  darwin: {
+    label: "macos",
+    pkgPlatform: "macos",
+    prebuildPlatform: "darwin",
+    executableSuffix: "",
+  },
+};
+
+function normalizePlatform(value) {
+  const normalized = PLATFORM_ALIASES.get(value.toLowerCase()) ?? value.toLowerCase();
+  if (!(normalized in SUPPORTED_PLATFORMS)) {
+    throw new Error(
+      `Unsupported target platform "${value}". Supported platforms: ${Object.keys(SUPPORTED_PLATFORMS).join(", ")}.`,
+    );
+  }
+  return normalized;
+}
+
+function normalizeArch(value) {
+  const normalized = ARCH_ALIASES.get(value.toLowerCase()) ?? value.toLowerCase();
+  if (!["x64", "arm64"].includes(normalized)) {
+    throw new Error('Unsupported target architecture "' + value + '". Supported architectures: x64, arm64.');
+  }
+  return normalized;
+}
+
+function parseTargetSpecifier(specifier) {
+  const [platformPart, archPart] = specifier.split("-");
+  if (!platformPart || !archPart) {
+    throw new Error(`Invalid target specifier "${specifier}". Expected format <platform>-<arch>, e.g. win-x64.`);
+  }
+  return {
+    platform: normalizePlatform(platformPart),
+    arch: normalizeArch(archPart),
+  };
+}
+
+const args = process.argv.slice(2);
+let overridePlatform;
+let overrideArch;
+
+for (let i = 0; i < args.length; i += 1) {
+  const arg = args[i];
+
+  if (arg.startsWith("--target=")) {
+    const { platform, arch } = parseTargetSpecifier(arg.split("=", 2)[1]);
+    overridePlatform = platform;
+    overrideArch = arch;
+    continue;
+  }
+
+  if (arg === "--target") {
+    if (i + 1 >= args.length) {
+      throw new Error("--target requires a value (e.g. --target win-x64)");
+    }
+    const { platform, arch } = parseTargetSpecifier(args[i + 1]);
+    overridePlatform = platform;
+    overrideArch = arch;
+    i += 1;
+    continue;
+  }
+
+  if (arg.startsWith("--platform=")) {
+    overridePlatform = normalizePlatform(arg.split("=", 2)[1]);
+    continue;
+  }
+
+  if (arg === "--platform") {
+    if (i + 1 >= args.length) {
+      throw new Error("--platform requires a value");
+    }
+    overridePlatform = normalizePlatform(args[i + 1]);
+    i += 1;
+    continue;
+  }
+
+  if (arg.startsWith("--arch=")) {
+    overrideArch = normalizeArch(arg.split("=", 2)[1]);
+    continue;
+  }
+
+  if (arg === "--arch") {
+    if (i + 1 >= args.length) {
+      throw new Error("--arch requires a value");
+    }
+    overrideArch = normalizeArch(args[i + 1]);
+    i += 1;
+    continue;
+  }
+
+  throw new Error(`Unknown argument "${arg}".`);
+}
+
+const targetPlatform = overridePlatform ?? normalizePlatform(process.platform);
+const targetArch = overrideArch ?? normalizeArch(process.arch);
+const platformConfig = SUPPORTED_PLATFORMS[targetPlatform];
+const pkgArch = targetArch;
+const pkgTarget = `node18-${platformConfig.pkgPlatform}-${pkgArch}`;
+const outputLabel = `${platformConfig.label}-${targetArch}`;
+const outputRoot = path.join(rootDir, "standalone", outputLabel);
+const outputExe = path.join(outputRoot, `DreamShards${platformConfig.executableSuffix}`);
+
+let targetSqliteBinaryBuffer = null;
 const pkgConfigFile = path.join(rootDir, "pkg.standalone.json");
 const databaseFile = path.join(rootDir, "server", "dreamshards.db");
 
@@ -27,6 +165,8 @@ function run(command) {
 function runBin(binary, args, options = {}) {
   execFileSync(binary, args, { stdio: "inherit", cwd: options.cwd ?? rootDir });
 }
+
+const npxBin = process.platform === "win32" ? "npx.cmd" : "npx";
 
 function ensureBuildArtifacts() {
   const hasServer = fs.existsSync(serverBundle);
@@ -56,7 +196,7 @@ function buildCommonJsServerBundle() {
     "--format=cjs",
     `--outfile=${relativeOutput}`,
   ];
-  runBin("npx", esbuildArgs);
+  runBin(npxBin, esbuildArgs);
 
   if (!fs.existsSync(serverStandaloneBundle)) {
     throw new Error("Failed to create CommonJS server bundle for pkg.");
@@ -80,18 +220,20 @@ function copyStaticAssets() {
     fs.copyFileSync(databaseFile, path.join(targetDbDir, path.basename(databaseFile)));
   }
 
-  if (!windowsSqliteBinaryBuffer) {
-    throw new Error("better-sqlite3 Windows binary was not prepared.");
+  if (!targetSqliteBinaryBuffer) {
+    throw new Error("better-sqlite3 binary for the target platform was not prepared.");
   }
 
   fs.writeFileSync(
     path.join(outputRoot, path.basename(sqliteBinary)),
-    windowsSqliteBinaryBuffer,
+    targetSqliteBinaryBuffer,
   );
 }
 
 function ensureBetterSqliteBinary() {
-  console.log(`⚙️  Ensuring better-sqlite3 native addon for Node ${pkgNodeVersion} (win32-x64)...`);
+  console.log(
+    `⚙️  Ensuring better-sqlite3 native addon for Node ${pkgNodeVersion} (${platformConfig.prebuildPlatform}-${targetArch})...`,
+  );
   const moduleDir = path.join(rootDir, "node_modules", "better-sqlite3");
 
   if (!fs.existsSync(moduleDir)) {
@@ -106,7 +248,7 @@ function ensureBetterSqliteBinary() {
 
   try {
     runBin(
-      "npx",
+      npxBin,
       [
         "prebuild-install",
         "--target",
@@ -114,29 +256,29 @@ function ensureBetterSqliteBinary() {
         "--runtime",
         "node",
         "--platform",
-        "win32",
+        platformConfig.prebuildPlatform,
         "--arch",
-        "x64",
+        targetArch,
       ],
       { cwd: moduleDir },
     );
 
     if (!fs.existsSync(sqliteBinary)) {
-      throw new Error("Failed to download better-sqlite3 Windows binary.");
+      throw new Error("Failed to download better-sqlite3 native binary for the target platform.");
     }
 
-    windowsSqliteBinaryBuffer = fs.readFileSync(sqliteBinary);
+    targetSqliteBinaryBuffer = fs.readFileSync(sqliteBinary);
   } finally {
     fs.writeFileSync(sqliteBinary, originalBinary);
   }
 
-  if (!windowsSqliteBinaryBuffer || windowsSqliteBinaryBuffer.length === 0) {
-    throw new Error("Downloaded better-sqlite3 Windows binary was empty.");
+  if (!targetSqliteBinaryBuffer || targetSqliteBinaryBuffer.length === 0) {
+    throw new Error("Downloaded better-sqlite3 native binary was empty.");
   }
 }
 
 function createExecutable() {
-  console.log("⚙️  Bundling Windows executable with pkg...");
+  console.log(`⚙️  Bundling ${platformConfig.label} executable with pkg...`);
   if (!fs.existsSync(pkgConfigFile)) {
     throw new Error(`Missing pkg configuration at ${pkgConfigFile}`);
   }
@@ -152,10 +294,11 @@ function createExecutable() {
     path.relative(rootDir, pkgConfigFile),
   ];
 
-  runBin("npx", pkgArgs);
+  runBin(npxBin, pkgArgs);
 }
 
 function main() {
+  console.log(`🎯 Targeting ${targetPlatform}/${targetArch} (pkg target ${pkgTarget})`);
   ensureBuildArtifacts();
   buildCommonJsServerBundle();
   prepareOutputDirectory();
