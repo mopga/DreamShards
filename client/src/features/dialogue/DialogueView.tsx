@@ -26,7 +26,7 @@ export function DialogueView() {
   if (!session) {
     return (
       <div className="rounded-lg border border-slate-700/60 bg-slate-900/80 p-6 text-slate-200">
-        <p>No voices are calling right now.</p>
+        <p>Сейчас никаких голосов не слышно.</p>
       </div>
     );
   }
@@ -35,7 +35,7 @@ export function DialogueView() {
   if (!node) {
     return (
       <div className="rounded-lg border border-rose-700/40 bg-rose-900/40 p-6 text-rose-100">
-        <p>The dream failed to recall this memory.</p>
+        <p>Сну не удалось вернуть это воспоминание.</p>
       </div>
     );
   }
@@ -46,7 +46,7 @@ export function DialogueView() {
 
   return (
     <div className="mx-auto max-w-3xl rounded-lg border border-indigo-500/60 bg-slate-900/90 p-8 shadow-lg shadow-indigo-900/30">
-      <h2 className="text-xl font-semibold text-indigo-200">Dream Beach</h2>
+      <h2 className="text-xl font-semibold text-indigo-200">Пляж Снов</h2>
       <p className="mt-4 text-lg leading-relaxed text-slate-100">{applyHero(node.text, hero)}</p>
 
       <div className="mt-6 flex flex-col gap-3">
@@ -64,7 +64,7 @@ export function DialogueView() {
             className="rounded-md border border-slate-500/50 bg-slate-500/10 px-4 py-2 text-left text-slate-200"
             onClick={() => advanceDialogue("start")}
           >
-            Listen to the surf again
+            Снова прислушаться к прибою
           </button>
         )}
       </div>
