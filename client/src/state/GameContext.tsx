@@ -70,6 +70,34 @@ interface GameContextValue {
   resetToMenu(): void;
 }
 
+function isAllowedLogEntry(message: string): boolean {
+  const trimmed = message.trim();
+  if (!trimmed) return false;
+  if (/reached level/i.test(trimmed) || (/достиг/i.test(trimmed) && /уровн/i.test(trimmed))) {
+    return true;
+  }
+  if (/mastered/i.test(trimmed) || /осво(ил|ила)/i.test(trimmed)) {
+    return true;
+  }
+  if (/^Collected\b/i.test(trimmed) || /^Собран/i.test(trimmed)) {
+    return true;
+  }
+  if (/^Cleared\b/i.test(trimmed)) {
+    return true;
+  }
+  if (/комната/i.test(trimmed) && (/(зачищена|очищена)/i.test(trimmed))) {
+    return true;
+  }
+  return false;
+}
+
+function appendAllowedLog(log: string[], message: string): string[] {
+  if (!isAllowedLogEntry(message)) {
+    return log;
+  }
+  return [...log, message].slice(-20);
+}
+
 function createInitialState(): AppState {
   const progression: ProgressionState = { level: 1, xp: 0 };
   const flags: Record<string, boolean> = {};
@@ -299,7 +327,7 @@ function reducer(state: AppState, action: any): AppState {
         shardsCollected: countShards(nextFlags),
         mode: "dialogue",
         dialogue: { scriptId: "beach", nodes: dialogueBeach, currentId: "start" },
-        log: [...state.log, "The moonlit shore fades behind you."].slice(-20),
+        log: appendAllowedLog(state.log, "The moonlit shore fades behind you."),
       };
     }
     case "OPEN_DIALOGUE":
@@ -330,7 +358,7 @@ function reducer(state: AppState, action: any): AppState {
           shardsCollected: countShards(flags),
           dialogue: undefined,
           mode: "exploration",
-          log: [...state.log, "Lister's words linger like foam."].slice(-20),
+          log: appendAllowedLog(state.log, "Lister's words linger like foam."),
         };
       }
 
@@ -388,17 +416,17 @@ function reducer(state: AppState, action: any): AppState {
         unlockedSkills: unlockUpdate.unlockedSkills,
         skillUnlockQueue: unlockUpdate.skillUnlockQueue,
         roomStates,
-        log: [...state.log, `Collected ${shardId}.`].slice(-20),
+        log: appendAllowedLog(state.log, `Collected ${shardId}.`),
       };
     }
     case "START_ENCOUNTER":
       return { ...state, mode: "combat", activeEncounterId: action.payload };
     case "RESOLVE_COMBAT": {
-      const { encounterId, victory, messages, rewards } = action.payload as CombatResolution;
+      const { encounterId, victory, rewards } = action.payload as CombatResolution;
       let flags = state.flags;
       let inventory = state.inventory;
       let mode: GameMode = "exploration";
-      let log = [...state.log, ...messages].slice(-20);
+      let log = state.log;
       let progression = state.progression ?? { level: 1, xp: 0 };
       let companionLevel = state.companionLevel ?? progression.level;
       let unlockedSkills = state.unlockedSkills ?? {};
@@ -413,6 +441,7 @@ function reducer(state: AppState, action: any): AppState {
         let shardAwarded = false;
 
         if (guardRoom) {
+          log = appendAllowedLog(log, `Cleared ${guardRoom.id}.`);
           roomStates = {
             ...roomStates,
             [guardRoom.id]: {
@@ -423,7 +452,7 @@ function reducer(state: AppState, action: any): AppState {
 
           if (guardRoom.shardId && !flags[guardRoom.shardId]) {
             flags = { ...flags, [guardRoom.shardId]: true };
-            log = [...log, `Collected ${guardRoom.shardId}.`].slice(-20);
+            log = appendAllowedLog(log, `Collected ${guardRoom.shardId}.`);
           }
 
           shardAwarded = true;
@@ -441,7 +470,6 @@ function reducer(state: AppState, action: any): AppState {
         const encounter = encounters[encounterId];
         const xpReward = calculateXpReward(encounter, state.shardsCollected);
         if (xpReward > 0) {
-          log = [...log, `Gained ${xpReward} XP.`].slice(-20);
           const totalXp = progression.xp + xpReward;
           const nextLevel = calculateLevelFromXp(totalXp);
           const leveledUp = nextLevel > progression.level;
@@ -449,18 +477,16 @@ function reducer(state: AppState, action: any): AppState {
           if (leveledUp) {
             companionLevel = nextLevel;
             const heroLabel = selectHeroName(state) || state.heroName || "Hero";
-            log = [...log, `${heroLabel} reached level ${nextLevel}!`].slice(-20);
+            log = appendAllowedLog(log, `${heroLabel} reached level ${nextLevel}!`);
           }
         }
 
         if (encounterId === palaceLayout.bossEncounterId) {
           flags = { ...flags, bossDefeated: true };
           mode = "ending";
-          log = [...log, "The Avatar dissolves into quiet surf."].slice(-20);
         }
       } else {
         mode = "dialogue";
-        log = [...log, "Fear presses down. Lister pulls you back to the shore."].slice(-20);
       }
 
       const shardsCollected = countShards(flags);
@@ -522,7 +548,7 @@ function reducer(state: AppState, action: any): AppState {
       };
     }
     case "ADD_LOG":
-      return { ...state, log: [...state.log, action.payload].slice(-20) };
+      return { ...state, log: appendAllowedLog(state.log, action.payload) };
     case "ADJUST_INVENTORY": {
       const { itemId, delta } = action.payload as { itemId: string; delta: number };
       const inventory = state.inventory.map((entry) => ({ ...entry }));
