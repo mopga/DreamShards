@@ -23,6 +23,14 @@ function cloneActor(actor: Actor): Actor {
   };
 }
 
+function cloneActorWithStats(actor: Actor, overrides?: Partial<Actor["stats"]>): Actor {
+  const copy = cloneActor(actor);
+  if (overrides) {
+    copy.stats = { ...copy.stats, ...overrides };
+  }
+  return copy;
+}
+
 export const encounters: Record<string, EncounterDefinition> = {
   guard1: {
     id: "guard1",
@@ -35,14 +43,22 @@ export const encounters: Record<string, EncounterDefinition> = {
     id: "guard2",
     name: "Страж Галереи",
     description: "Рой стеклянных химер срывается с рам, защищая сияющую сердцевину.",
-    enemies: [cloneActor(enemies.shadow_crawler), cloneActor(enemies.shadow_screamer)],
+    enemies: [cloneActorWithStats(enemies.shadow_screamer, { maxHP: 70, mag: 12 })],
     reward: { items: [{ id: "dream_tonic", qty: 1 }] },
   },
   guard3: {
     id: "guard3",
     name: "Страж Сокровищницы",
     description: "Сгусток страха складывается в две фигуры, что движутся как единое целое.",
-    enemies: [cloneActor(enemies.shadow_screamer), cloneActor(enemies.shadow_screamer)],
+    enemies: [
+      cloneActorWithStats(enemies.shadow_screamer, {
+        maxHP: 84,
+        str: 10,
+        mag: 13,
+        def: 8,
+        res: 8,
+      }),
+    ],
     reward: { items: [{ id: "dream_tonic", qty: 2 }] },
   },
   boss_fear: {

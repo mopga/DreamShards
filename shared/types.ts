@@ -75,6 +75,7 @@ export interface PalaceRoom {
   shardId?: string;
   encounterTable?: PalaceEncounterTable;
   guardEncounter?: string;
+  shardCollected?: boolean;
 }
 
 export interface PalaceLayout {
