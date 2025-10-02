@@ -2,11 +2,12 @@ import React, { createContext, useContext, useMemo, useReducer } from "react";
 import type { DialogueNode, GameState, PalaceEncounterTable, ProgressionState } from "@shared/types";
 import { selectHeroName, isHeroNameValid } from "@shared/selectors";
 import {
-  dialogueBeach,
   palaceLayout,
   progressionLevels,
   skillUnlocks,
   encounterTablesConfig,
+  getDialogueScript,
+  type DialogueScriptId,
 } from "./content";
 import { encounters, type EncounterDefinition } from "./encounters";
 import { partyActors, type PartyMemberId } from "./party";
@@ -29,7 +30,8 @@ interface SkillUnlockNotification {
 }
 
 interface DialogueSession {
-  scriptId: "beach";
+  scriptId: DialogueScriptId;
+  title: string;
   nodes: DialogueNode[];
   currentId: string;
 }
@@ -133,6 +135,22 @@ const shardIds = Array.from(
     palaceLayout.rooms.flatMap((room) => (room.shardId ? [room.shardId] : [])),
   ),
 );
+
+const guardEncounterIds = Array.from(
+  new Set(
+    palaceLayout.rooms.flatMap((room) =>
+      room.guardEncounter ? [room.guardEncounter] : [],
+    ),
+  ),
+);
+
+function createDialogueSession(
+  scriptId: DialogueScriptId,
+  currentId = "start",
+): DialogueSession {
+  const script = getDialogueScript(scriptId);
+  return { scriptId: script.id, title: script.title, nodes: script.nodes, currentId };
+}
 
 function createInitialState(): AppState {
   const progression: ProgressionState = { level: 1, xp: 0 };
@@ -383,7 +401,7 @@ function reducer(state: AppState, action: any): AppState {
         flags: nextFlags,
         shardsCollected: countShards(nextFlags),
         mode: "dialogue",
-        dialogue: { scriptId: "beach", nodes: dialogueBeach, currentId: "start" },
+        dialogue: createDialogueSession("beach"),
         log: appendAllowedLog(state.log, "The moonlit shore fades behind you."),
       };
     }
@@ -544,6 +562,7 @@ function reducer(state: AppState, action: any): AppState {
       let flags = state.flags;
       let inventory = state.inventory;
       let mode: GameMode = "exploration";
+      let dialogueSession: DialogueSession | undefined;
       let log = appendAllowedLogs(state.log, messages ?? []);
       let progression = state.progression ?? { level: 1, xp: 0 };
       let companionLevel = state.companionLevel ?? progression.level;
@@ -599,12 +618,29 @@ function reducer(state: AppState, action: any): AppState {
           }
         }
 
+        if (!state.flags.listerTalk2done || !state.flags.listerTalk4done) {
+          const clearedMandatory = guardEncounterIds.reduce((acc, guardId) => {
+            return flags[`encounter_${guardId}_cleared`] ? acc + 1 : acc;
+          }, 0);
+
+          if (clearedMandatory === 2 && !state.flags.listerTalk2done) {
+            flags = { ...flags, listerTalk2done: true };
+            mode = "dialogue";
+            dialogueSession = createDialogueSession("lister_2");
+          } else if (clearedMandatory === 4 && !state.flags.listerTalk4done) {
+            flags = { ...flags, listerTalk4done: true };
+            mode = "dialogue";
+            dialogueSession = createDialogueSession("lister_4");
+          }
+        }
+
         if (encounterId === palaceLayout.bossEncounterId) {
           flags = { ...flags, bossDefeated: true };
           mode = "ending";
         }
       } else {
         mode = "dialogue";
+        dialogueSession = createDialogueSession("beach");
       }
 
       const shardsCollected = countShards(flags);
@@ -631,10 +667,7 @@ function reducer(state: AppState, action: any): AppState {
         inventory,
         log,
         roomStates,
-        dialogue:
-          mode === "dialogue"
-            ? { scriptId: "beach" as const, nodes: dialogueBeach, currentId: "start" }
-            : state.dialogue,
+        dialogue: mode === "dialogue" ? dialogueSession ?? createDialogueSession("beach") : undefined,
       };
     }
     case "SET_FLAG": {
@@ -701,6 +734,9 @@ function reducer(state: AppState, action: any): AppState {
         flags,
         suppressNotifications: true,
       });
+      const snapshotDialogue = snapshot.dialogue?.scriptId
+        ? createDialogueSession(snapshot.dialogue.scriptId, snapshot.dialogue.currentId ?? "start")
+        : undefined;
       return {
         ...base,
         ...snapshot,
@@ -716,8 +752,8 @@ function reducer(state: AppState, action: any): AppState {
         randomEncounterCooldown,
         dialogue:
           snapshot.mode === "dialogue"
-            ? { scriptId: "beach", nodes: dialogueBeach, currentId: snapshot.dialogue?.currentId ?? "start" }
-            : snapshot.dialogue,
+            ? snapshotDialogue ?? createDialogueSession("beach")
+            : snapshotDialogue,
       };
     }
     case "CONSUME_SKILL_UNLOCK": {
@@ -743,9 +779,8 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       completeBeachIntro: () => dispatch({ type: "COMPLETE_BEACH_INTRO" }),
       confirmHeroName: (name) => dispatch({ type: "SET_HERO_NAME", payload: name }),
       setMode: (mode) => dispatch({ type: "SET_MODE", payload: mode }),
-      openDialogue: (
-        session = { scriptId: "beach" as const, nodes: dialogueBeach, currentId: "start" },
-      ) => dispatch({ type: "OPEN_DIALOGUE", payload: session }),
+      openDialogue: (session) =>
+        dispatch({ type: "OPEN_DIALOGUE", payload: session ?? createDialogueSession("beach") }),
       advanceDialogue: (nextId, setFlags) =>
         dispatch({ type: "ADVANCE_DIALOGUE", payload: { nextId, setFlags } }),
       moveToRoom: (roomId) => dispatch({ type: "MOVE_ROOM", payload: roomId }),
