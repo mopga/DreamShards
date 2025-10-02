@@ -68,19 +68,39 @@ export interface DialogueNode {
 
 export type PalaceEncounterTable = 'weak' | 'mid' | 'hard';
 
+export interface PalaceRoomLoot {
+  items?: Array<{ id: string; qty: number }>;
+  logMessage?: string;
+  actionLabel?: string;
+}
+
 export interface PalaceRoom {
   id: string;
-  type: 'entry' | 'combat' | 'shard' | 'boss';
+  type: 'entry' | 'combat' | 'shard' | 'boss' | 'lore';
   neighbors: string[];
   shardId?: string;
   encounterTable?: PalaceEncounterTable;
   guardEncounter?: string;
   shardCollected?: boolean;
+  loot?: PalaceRoomLoot;
 }
 
 export interface PalaceLayout {
   rooms: PalaceRoom[];
   bossEncounterId: string;
+}
+
+export interface PalaceEncounterTableEntry {
+  id: string;
+  weight: number;
+}
+
+export interface PalaceEncounterTablesConfig {
+  tables: Record<PalaceEncounterTable, PalaceEncounterTableEntry[]>;
+  cooldownSteps: number;
+  baseChance: number;
+  chanceStep: number;
+  maxChance: number;
 }
 
 export interface GameState {

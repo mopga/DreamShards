@@ -19,6 +19,10 @@ const roomMetadata: Record<string, RoomMetadata> = {
     name: "Зал эха",
     description: "Колонны напевают забытые страхи. Здесь роятся слабые тени, испытывая вашу решимость.",
   },
+  guard_room: {
+    name: "Комната стражи",
+    description: "Небольшой караул хоронит усталость среди копий и полированных шлемов.",
+  },
   library: {
     name: "Лабиринт томов",
     description: "Полки, наполненные тревожными хрониками, охраняют первый осколок. Страж ревниво следит за каждым шагом.",
@@ -27,9 +31,17 @@ const roomMetadata: Record<string, RoomMetadata> = {
     name: "Галерея отражений",
     description: "Картины оживают и шепчут чужие кошмары. Второй осколок прячется среди разбитых рам.",
   },
+  servants_room: {
+    name: "Комната прислуги",
+    description: "Аромат лавандового масла и аккуратно сложенное бельё скрывают незаметные тайники.",
+  },
   vault: {
     name: "Сокровищница шрама",
     description: "Три запечатанных сердца бьются в унисон, охраняемые последним стражем. Здесь скрыт финальный осколок.",
+  },
+  royal_bedroom: {
+    name: "Королевская спальня",
+    description: "Золочёные занавеси дрожат от невидимого сквозняка. Тайны правителя заперты вместе с бдительными стражами.",
   },
   gate: {
     name: "Врата Аватара",
@@ -40,9 +52,12 @@ const roomMetadata: Record<string, RoomMetadata> = {
 const roomPositions: Record<string, { x: number; y: number }> = {
   entry: { x: 12, y: 52 },
   hall: { x: 36, y: 52 },
+  guard_room: { x: 48, y: 36 },
   library: { x: 58, y: 28 },
   gallery: { x: 58, y: 76 },
+  servants_room: { x: 70, y: 68 },
   vault: { x: 82, y: 52 },
+  royal_bedroom: { x: 82, y: 32 },
   gate: { x: 92, y: 18 },
 };
 
@@ -59,11 +74,15 @@ function formatRoomId(id: string) {
 }
 
 export function ExplorationView() {
-  const { state, moveToRoom, collectShard, startEncounter, openDialogue } = useGame();
+  const { state, moveToRoom, collectShard, startEncounter, openDialogue, claimRoomLoot } =
+    useGame();
   const baseRoom = roomIndex.get(state.location.roomId);
   const roomState = baseRoom ? state.roomStates[baseRoom.id] : undefined;
   const room = baseRoom
-    ? ({ ...baseRoom, ...roomState } as typeof baseRoom & { shardCollected?: boolean })
+    ? ({ ...baseRoom, ...roomState } as typeof baseRoom & {
+        shardCollected?: boolean;
+        lootClaimed?: boolean;
+      })
     : undefined;
 
   const edges = useMemo(() => {
@@ -90,6 +109,8 @@ export function ExplorationView() {
     ? state.flags[`encounter_${guardEncounter.id}_cleared`]
     : false;
   const shardAvailable = room.shardId && !state.flags[room.shardId] && guardCleared;
+  const lootAvailable = Boolean(room.loot && !room.lootClaimed);
+  const lootAlreadyClaimed = Boolean(room.loot && room.lootClaimed);
 
   const bossEncounter = getEncounter(palaceLayout.bossEncounterId);
   const bossCleared = bossEncounter
@@ -204,6 +225,21 @@ export function ExplorationView() {
             {guardEncounter && guardCleared && (
               <div className="rounded-md border border-emerald-500/40 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100">
                 Страж отступил. Комната спит спокойно.
+              </div>
+            )}
+
+            {lootAvailable && room.loot && (
+              <button
+                className="block w-full rounded-md border border-sky-400/70 bg-sky-400/20 px-4 py-3 text-left text-sm text-sky-100 transition hover:bg-sky-400/30"
+                onClick={() => claimRoomLoot(room.id)}
+              >
+                {room.loot.actionLabel ?? "Обыскать комнату"}
+              </button>
+            )}
+
+            {lootAlreadyClaimed && (
+              <div className="rounded-md border border-sky-300/40 bg-sky-300/10 px-4 py-3 text-sm text-sky-100">
+                Комната уже обыскана.
               </div>
             )}
 

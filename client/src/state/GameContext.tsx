@@ -1,7 +1,13 @@
 import React, { createContext, useContext, useMemo, useReducer } from "react";
-import type { DialogueNode, GameState, ProgressionState } from "@shared/types";
+import type { DialogueNode, GameState, PalaceEncounterTable, ProgressionState } from "@shared/types";
 import { selectHeroName, isHeroNameValid } from "@shared/selectors";
-import { dialogueBeach, palaceLayout, progressionLevels, skillUnlocks } from "./content";
+import {
+  dialogueBeach,
+  palaceLayout,
+  progressionLevels,
+  skillUnlocks,
+  encounterTablesConfig,
+} from "./content";
 import { encounters, type EncounterDefinition } from "./encounters";
 import { partyActors, type PartyMemberId } from "./party";
 import { itemCatalog } from "./items";
@@ -30,6 +36,7 @@ interface DialogueSession {
 
 type RoomState = {
   shardCollected?: boolean;
+  lootClaimed?: boolean;
 };
 
 export interface AppState extends GameState {
@@ -39,6 +46,8 @@ export interface AppState extends GameState {
   log: string[];
   skillUnlockQueue: SkillUnlockNotification[];
   roomStates: Record<string, RoomState>;
+  randomEncounterChance: number;
+  randomEncounterCooldown: number;
 }
 
 export interface CombatResolution {
@@ -62,6 +71,7 @@ interface GameContextValue {
   collectShard(shardId: string): void;
   startEncounter(encounterId: string): void;
   resolveCombat(result: CombatResolution): void;
+  claimRoomLoot(roomId: string): void;
   setFlag(key: string, value: boolean): void;
   addLogEntry(message: string): void;
   adjustInventory(itemId: string, delta: number): void;
@@ -85,6 +95,9 @@ function isAllowedLogEntry(message: string): boolean {
   if (/^Cleared\b/i.test(trimmed)) {
     return true;
   }
+  if (/^Found\b/i.test(trimmed) || /^Найдено?/i.test(trimmed)) {
+    return true;
+  }
   if (/комната/i.test(trimmed) && (/(зачищена|очищена)/i.test(trimmed))) {
     return true;
   }
@@ -104,6 +117,16 @@ function appendAllowedLogs(log: string[], messages: readonly string[]): string[]
   }
   return messages.reduce((current, message) => appendAllowedLog(current, message), log);
 }
+
+const RANDOM_COOLDOWN_STEPS = Math.max(0, Math.round(encounterTablesConfig.cooldownSteps ?? 0));
+
+const encounterTableWeights = encounterTablesConfig.tables;
+const encounterBaseChance = Math.min(1, Math.max(0, encounterTablesConfig.baseChance ?? 0));
+const encounterChanceStep = Math.max(0, encounterTablesConfig.chanceStep ?? 0);
+const encounterMaxChance = Math.min(
+  1,
+  Math.max(encounterBaseChance, encounterTablesConfig.maxChance ?? encounterBaseChance),
+);
 
 function createInitialState(): AppState {
   const progression: ProgressionState = { level: 1, xp: 0 };
@@ -130,6 +153,8 @@ function createInitialState(): AppState {
     unlockedSkills,
     skillUnlockQueue: [],
     roomStates: createInitialRoomStates(flags),
+    randomEncounterChance: encounterBaseChance,
+    randomEncounterCooldown: 0,
   };
 }
 
@@ -158,6 +183,24 @@ function createInitialRoomStates(flags: Record<string, boolean>) {
 
 const MAX_LEVEL = Math.max(1, progressionLevels.length - 1);
 const DIFFICULTY_PER_SHARD = 0.12;
+
+function pickRandomEncounterId(tableKey: PalaceEncounterTable | undefined) {
+  if (!tableKey) return undefined;
+  const table = encounterTableWeights[tableKey];
+  if (!table || !table.length) return undefined;
+  const totalWeight = table.reduce((acc, entry) => acc + Math.max(0, entry.weight), 0);
+  if (totalWeight <= 0) return undefined;
+  let roll = Math.random() * totalWeight;
+  for (const entry of table) {
+    const weight = Math.max(0, entry.weight);
+    if (weight <= 0) continue;
+    if (roll < weight) {
+      return entry.id;
+    }
+    roll -= weight;
+  }
+  return table[table.length - 1]?.id;
+}
 
 interface EvaluateSkillUnlocksOptions {
   unlockedSkills: Record<string, string[]>;
@@ -379,18 +422,56 @@ function reducer(state: AppState, action: any): AppState {
     case "MOVE_ROOM": {
       const roomId: string = action.payload;
       const targetRoom = palaceLayout.rooms.find((entry) => entry.id === roomId);
+      if (!targetRoom) {
+        return state;
+      }
       let mode: GameMode = "exploration";
       let activeEncounterId: string | undefined;
+      let randomEncounterChance = Math.min(
+        encounterMaxChance,
+        Math.max(0, state.randomEncounterChance ?? encounterBaseChance),
+      );
+      let randomEncounterCooldown = Math.max(
+        0,
+        Math.round(state.randomEncounterCooldown ?? 0),
+      );
 
-      if (targetRoom?.type === "shard" && targetRoom.guardEncounter) {
+      if (randomEncounterCooldown > 0) {
+        randomEncounterCooldown -= 1;
+      }
+
+      if (targetRoom.guardEncounter) {
         const guardCleared = state.flags[`encounter_${targetRoom.guardEncounter}_cleared`];
         const shardCollected =
           state.roomStates[targetRoom.id]?.shardCollected ||
           (targetRoom.shardId ? state.flags[targetRoom.shardId] : false);
 
-        if (!guardCleared && !shardCollected) {
+        if (!guardCleared && (!targetRoom.shardId || !shardCollected)) {
           mode = "combat";
           activeEncounterId = targetRoom.guardEncounter;
+        }
+      }
+
+      const isSafeRoom = targetRoom.type === "entry" || targetRoom.type === "boss";
+      if (!activeEncounterId && !isSafeRoom && targetRoom.encounterTable) {
+        if (randomEncounterCooldown <= 0) {
+          const shouldTrigger = Math.random() <= randomEncounterChance;
+          if (shouldTrigger) {
+            const randomEncounterId = pickRandomEncounterId(targetRoom.encounterTable);
+            if (randomEncounterId) {
+              mode = "combat";
+              activeEncounterId = randomEncounterId;
+              randomEncounterChance = encounterBaseChance;
+              randomEncounterCooldown = RANDOM_COOLDOWN_STEPS;
+            }
+          }
+
+          if (!activeEncounterId) {
+            randomEncounterChance = Math.min(
+              randomEncounterChance + encounterChanceStep,
+              encounterMaxChance,
+            );
+          }
         }
       }
 
@@ -399,6 +480,8 @@ function reducer(state: AppState, action: any): AppState {
         location: { roomId },
         mode,
         activeEncounterId,
+        randomEncounterChance,
+        randomEncounterCooldown,
       };
     }
     case "COLLECT_SHARD": {
@@ -424,6 +507,27 @@ function reducer(state: AppState, action: any): AppState {
         skillUnlockQueue: unlockUpdate.skillUnlockQueue,
         roomStates,
         log: appendAllowedLog(state.log, `Collected ${shardId}.`),
+      };
+    }
+    case "CLAIM_ROOM_LOOT": {
+      const roomId: string = action.payload;
+      const room = palaceLayout.rooms.find((entry) => entry.id === roomId);
+      if (!room?.loot) return state;
+      const current = state.roomStates[roomId] ?? {};
+      if (current.lootClaimed) return state;
+      const inventory = applyItemRewards(state.inventory, room.loot.items);
+      const roomStates = {
+        ...state.roomStates,
+        [roomId]: { ...current, lootClaimed: true },
+      };
+      const log = room.loot.logMessage
+        ? appendAllowedLog(state.log, room.loot.logMessage)
+        : state.log;
+      return {
+        ...state,
+        inventory,
+        roomStates,
+        log,
       };
     }
     case "START_ENCOUNTER":
@@ -575,6 +679,14 @@ function reducer(state: AppState, action: any): AppState {
       const progression = snapshot.progression ?? base.progression;
       const shardsCollected = snapshot.shardsCollected ?? countShards(flags);
       const roomStates = snapshot.roomStates ?? createInitialRoomStates(flags);
+      const randomEncounterChance = Math.min(
+        encounterMaxChance,
+        Math.max(0, snapshot.randomEncounterChance ?? base.randomEncounterChance),
+      );
+      const randomEncounterCooldown = Math.max(
+        0,
+        Math.round(snapshot.randomEncounterCooldown ?? 0),
+      );
       const evaluation = evaluateSkillUnlocks({
         unlockedSkills: snapshot.unlockedSkills ?? base.unlockedSkills,
         progression,
@@ -593,6 +705,8 @@ function reducer(state: AppState, action: any): AppState {
         skillUnlockQueue: snapshot.skillUnlockQueue ?? [],
         roomStates,
         heroName: snapshot.heroName || "",
+        randomEncounterChance,
+        randomEncounterCooldown,
         dialogue:
           snapshot.mode === "dialogue"
             ? { scriptId: "beach", nodes: dialogueBeach, currentId: snapshot.dialogue?.currentId ?? "start" }
@@ -631,6 +745,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       collectShard: (shardId) => dispatch({ type: "COLLECT_SHARD", payload: shardId }),
       startEncounter: (encounterId) => dispatch({ type: "START_ENCOUNTER", payload: encounterId }),
       resolveCombat: (result) => dispatch({ type: "RESOLVE_COMBAT", payload: result }),
+      claimRoomLoot: (roomId) => dispatch({ type: "CLAIM_ROOM_LOOT", payload: roomId }),
       setFlag: (key, value) => dispatch({ type: "SET_FLAG", payload: { key, value } }),
       addLogEntry: (message) => dispatch({ type: "ADD_LOG", payload: message }),
       adjustInventory: (itemId, delta) =>

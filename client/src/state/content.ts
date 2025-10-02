@@ -4,7 +4,15 @@ import progressionData from "@shared/content/progression.json" assert { type: "j
 import skillUnlocksData from "@shared/content/skillUnlocks.json" assert { type: "json" };
 import palaceLayoutData from "@shared/content/palaceFear.json" assert { type: "json" };
 import dialogueBeachData from "@shared/content/dialogueBeach.json" assert { type: "json" };
-import type { Skill, Actor, PalaceLayout, DialogueNode, SkillUnlockDefinition } from "@shared/types";
+import type {
+  Skill,
+  Actor,
+  PalaceLayout,
+  DialogueNode,
+  SkillUnlockDefinition,
+  PalaceEncounterTablesConfig,
+} from "@shared/types";
+import encounterTablesData from "@shared/content/encounters.json" assert { type: "json" };
 
 export const skills = Object.fromEntries(
   (skillsData as Skill[]).map((skill) => [skill.id, skill])
@@ -20,3 +28,4 @@ export const skillUnlocks = skillUnlocksData as Record<string, SkillUnlockDefini
 
 export const palaceLayout = palaceLayoutData as PalaceLayout;
 export const dialogueBeach = dialogueBeachData as DialogueNode[];
+export const encounterTablesConfig = encounterTablesData as PalaceEncounterTablesConfig;
