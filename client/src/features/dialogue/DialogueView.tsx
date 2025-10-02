@@ -43,10 +43,11 @@ export function DialogueView() {
   const choices = node.choices?.filter((choice) =>
     canShowChoice(choice.requiresFlags, state.flags),
   );
+  const heading = session.title ?? "Пляж Снов";
 
   return (
     <div className="mx-auto max-w-3xl rounded-lg border border-indigo-500/60 bg-slate-900/90 p-8 shadow-lg shadow-indigo-900/30">
-      <h2 className="text-xl font-semibold text-indigo-200">Пляж Снов</h2>
+      <h2 className="text-xl font-semibold text-indigo-200">{heading}</h2>
       <p className="mt-4 text-lg leading-relaxed text-slate-100">{applyHero(node.text, hero)}</p>
 
       <div className="mt-6 flex flex-col gap-3">
