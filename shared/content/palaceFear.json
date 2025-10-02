@@ -1,58 +1,64 @@
 {
-    "rooms":  [
-                  {
-                      "id":  "entry",
-                      "type":  "entry",
-                      "neighbors":  [
-                                        "shard_gallery",
-                                        "echo_hall"
-                                    ]
-                  },
-                  {
-                      "id":  "shard_gallery",
-                      "type":  "shard",
-                      "neighbors":  [
-                                        "entry",
-                                        "wound_vault"
-                                    ],
-                      "shardId":  "shard1"
-                  },
-                  {
-                      "id":  "wound_vault",
-                      "type":  "shard",
-                      "neighbors":  [
-                                        "shard_gallery",
-                                        "threshold"
-                                    ],
-                      "shardId":  "shard2"
-                  },
-                  {
-                      "id":  "echo_hall",
-                      "type":  "combat",
-                      "neighbors":  [
-                                        "entry",
-                                        "threshold"
-                                    ],
-                      "encounterId":  "shadow_pack"
-                  },
-                  {
-                      "id":  "threshold",
-                      "type":  "shard",
-                      "neighbors":  [
-                                        "echo_hall",
-                                        "wound_vault",
-                                        "boss_gate"
-                                    ],
-                      "shardId":  "shard3"
-                  },
-                  {
-                      "id":  "boss_gate",
-                      "type":  "boss",
-                      "neighbors":  [
-                                        "threshold"
-                                    ],
-                      "encounterId":  "fear_avatar_final"
-                  }
-              ],
-    "bossEncounterId":  "fear_avatar_final"
+  "rooms": [
+    {
+      "id": "entry",
+      "type": "entry",
+      "neighbors": [
+        "hall",
+        "gallery"
+      ],
+      "encounterTable": "weak"
+    },
+    {
+      "id": "hall",
+      "type": "combat",
+      "neighbors": [
+        "entry",
+        "library"
+      ],
+      "encounterTable": "weak"
+    },
+    {
+      "id": "library",
+      "type": "shard",
+      "shardId": "shard1",
+      "neighbors": [
+        "hall",
+        "vault"
+      ],
+      "encounterTable": "mid",
+      "guardEncounter": "guard1"
+    },
+    {
+      "id": "gallery",
+      "type": "shard",
+      "shardId": "shard2",
+      "neighbors": [
+        "entry",
+        "vault"
+      ],
+      "encounterTable": "mid",
+      "guardEncounter": "guard2"
+    },
+    {
+      "id": "vault",
+      "type": "shard",
+      "shardId": "shard3",
+      "neighbors": [
+        "library",
+        "gallery",
+        "gate"
+      ],
+      "encounterTable": "hard",
+      "guardEncounter": "guard3"
+    },
+    {
+      "id": "gate",
+      "type": "boss",
+      "neighbors": [
+        "vault"
+      ]
+    }
+  ],
+  "bossEncounterId": "boss_fear"
 }
