@@ -52,7 +52,10 @@ function registerErrorHandler() {
 (async () => {
   const server = createServer(app);
 
-  if (app.get("env") === "development") {
+  const runningInPkg = typeof process.pkg !== "undefined";
+  const isDevelopment = app.get("env") === "development" && !runningInPkg;
+
+  if (isDevelopment) {
     await setupVite(app, server);
   } else {
     serveStatic(app);
