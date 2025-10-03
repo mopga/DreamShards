@@ -4,7 +4,9 @@ const path = require('node:path');
 
 const targets = [
   path.resolve(__dirname, '..', '..', 'dist', 'desktop'),
-  path.resolve(__dirname, '..', 'dist')
+  path.resolve(__dirname, '..', 'dist'),
+  path.resolve(__dirname, '..', 'tsconfig.main.tsbuildinfo'),
+  path.resolve(__dirname, '..', 'tsconfig.preload.tsbuildinfo')
 ];
 
 for (const target of targets) {
