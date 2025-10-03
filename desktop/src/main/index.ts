@@ -1,4 +1,5 @@
 import { app, BrowserWindow, shell } from 'electron';
+import type { Event as ElectronEvent, HandlerDetails, WebContents } from 'electron';
 import path from 'node:path';
 import url from 'node:url';
 
@@ -31,20 +32,20 @@ const createWindow = () => {
   }
 
   win.once('ready-to-show', () => win.show());
-  win.webContents.setWindowOpenHandler(({ url: externalUrl }: Electron.HandlerDetails) => {
+  win.webContents.setWindowOpenHandler(({ url: externalUrl }: HandlerDetails) => {
     shell.openExternal(externalUrl);
     return { action: 'deny' };
   });
 };
 
 app.whenReady().then(() => {
-  app.on('web-contents-created', (_event: Electron.Event, contents: Electron.WebContents) => {
+  app.on('web-contents-created', (_event: ElectronEvent, contents: WebContents) => {
     contents.once('dom-ready', () => {
       if (!contents.getURL().startsWith('devtools://')) {
         return;
       }
 
-      contents.on('console-message', (event: Electron.Event, level: number, message: string) => {
+      contents.on('console-message', (event: ElectronEvent, level: number, message: string) => {
         if (
           level >= 2 &&
           (message.includes("'Autofill.enable' wasn't found") ||
