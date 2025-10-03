@@ -11,7 +11,7 @@
     "noEmit": false,
     "allowImportingTsExtensions": false,
     "types": ["node", "electron"],
-    "typeRoots": ["./types", "./node_modules/@types"]
+    "typeRoots": ["./types", "./node_modules/@types", "../node_modules/@types"]
   },
   "include": ["src/preload/**/*.ts"],
   "exclude": ["./dist/preload"]

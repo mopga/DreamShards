@@ -31,20 +31,20 @@ const createWindow = () => {
   }
 
   win.once('ready-to-show', () => win.show());
-  win.webContents.setWindowOpenHandler(({ url: externalUrl }) => {
+  win.webContents.setWindowOpenHandler(({ url: externalUrl }: Electron.HandlerDetails) => {
     shell.openExternal(externalUrl);
     return { action: 'deny' };
   });
 };
 
 app.whenReady().then(() => {
-  app.on('web-contents-created', (_event, contents) => {
+  app.on('web-contents-created', (_event: Electron.Event, contents: Electron.WebContents) => {
     contents.once('dom-ready', () => {
       if (!contents.getURL().startsWith('devtools://')) {
         return;
       }
 
-      contents.on('console-message', (event, level, message) => {
+      contents.on('console-message', (event: Electron.Event, level: number, message: string) => {
         if (
           level >= 2 &&
           (message.includes("'Autofill.enable' wasn't found") ||
