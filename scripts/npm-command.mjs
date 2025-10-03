@@ -23,7 +23,11 @@ function createNpmInvocation(args) {
   };
 }
 
-export function runNpmCommand(args, { cwd = process.cwd(), stdio = 'inherit', displayName } = {}) {
+
+export function runNpmCommand(
+  args,
+  { cwd = process.cwd(), stdio = 'inherit', displayName, env = process.env } = {}
+) {
   const label = displayName ?? `npm ${args.join(' ')}`;
 
   return new Promise((resolve, reject) => {
@@ -32,6 +36,7 @@ export function runNpmCommand(args, { cwd = process.cwd(), stdio = 'inherit', di
     const child = spawn(command, commandArgs, {
       cwd,
       stdio,
+      env,
     });
 
     child.on('error', (error) => {

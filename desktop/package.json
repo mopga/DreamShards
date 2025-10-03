@@ -36,5 +36,8 @@
     "win": {
       "signAndEditExecutable": false
     }
+  },
+  "dependencies": {
+    "dream-shards": "file:.."
   }
 }
