@@ -15,7 +15,7 @@
     "copy:public": "node ./scripts/copy-public.cjs",
     "build:main": "tsc --project tsconfig.main.json",
     "build:preload": "tsc --project tsconfig.preload.json",
-    "package": "npm run build && electron-builder"
+    "package": "npm run build && npx --no-install electron-builder"
   },
   "devDependencies": {
     "@types/node": "^20.16.11",
@@ -29,14 +29,26 @@
     "wait-on": "^7.2.0"
   },
   "build": {
-    "npmRebuild": false,
+    "appId": "com.mopga.dreamshards",
+    "directories": {
+      "output": "release"
+    },
     "files": [
-      "dist/main/**/*",
-      "dist/preload/**/*",
-      "dist/public/**/*"
+      "dist/**",
+      "package.json",
+      "!**/*.map"
+    ],
+    "extraResources": [
+      {
+        "from": "dist/public",
+        "to": "public"
+      }
     ],
     "win": {
-      "signAndEditExecutable": false
+      "target": [
+        "nsis",
+        "portable"
+      ]
     }
   },
   "dependencies": {
