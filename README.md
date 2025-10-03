@@ -91,7 +91,7 @@ npm run desktop:build
 
 Executes the full desktop pipeline: cleans previous artifacts, builds the renderer, compiles the `main` and `preload` scripts with `tsc`, and invokes `electron-builder` to produce distributables in `dist/`.
 
-> The command above has been exercised as part of the latest refactor to ensure the desktop release pipeline continues to succeed end-to-end.
+> Verified with Node.js 20.18.0 / npm 10.8.2 on Linux x64 (electron-builder 24.13.3) via `npm run desktop:build` to confirm the release pipeline succeeds end-to-end after the dependency cleanup refactor.
 
 ### Standalone Build
 
