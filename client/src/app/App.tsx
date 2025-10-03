@@ -7,9 +7,8 @@ import { ExplorationView } from "@/features/exploration/ExplorationView";
 import { CombatView } from "@/features/combat/CombatView";
 import { EndingView } from "@/components/EndingView";
 import {
-  loadSnapshot,
+  getAllSnapshots,
   saveSnapshot,
-  pushSnapshotToServer,
   subscribeToSnapshotChange,
   type SaveFile,
 } from "@/features/save/saveSystem";
@@ -20,6 +19,7 @@ import { HeroNameModal } from "@/features/hero/HeroNameModal";
 import { useLocale, LocaleProvider, TranslationKey } from "@/state/LocaleContext";
 import { progressionLevels } from "@/state/content";
 import { Save, Upload, Download, Languages } from "lucide-react";
+import { SaveModal, LoadModal, ConfirmLatestModal } from "@/features/save/SaveModals";
 
 export default function App() {
   return (
@@ -77,7 +77,10 @@ function DreamShell() {
 function TopBar() {
   const { state, hydrate } = useGame();
   const { t, toggleLocale, locale } = useLocale();
-  const [snapshot, setSnapshot] = React.useState<SaveFile | null>(() => loadSnapshot());
+  const [snapshots, setSnapshots] = React.useState<SaveFile[]>(() => getAllSnapshots());
+  const [isSaveModalOpen, setSaveModalOpen] = React.useState(false);
+  const [isLoadModalOpen, setLoadModalOpen] = React.useState(false);
+  const [isConfirmModalOpen, setConfirmModalOpen] = React.useState(false);
   const modeKey = (`mode_${state.mode}`) as TranslationKey;
   const modeLabel = t(modeKey);
   const shardsLabel = t("shardsLabel");
@@ -90,24 +93,51 @@ function TopBar() {
   const summaryLine = `${modeLabel} | ${state.shardsCollected}/3 ${shardsLabel} | ${levelLabel} ${progression.level} | ${xpDisplay} ${xpLabel}`;
 
   React.useEffect(() => {
-    const unsubscribe = subscribeToSnapshotChange(setSnapshot);
+    const unsubscribe = subscribeToSnapshotChange(setSnapshots);
     return unsubscribe;
   }, []);
 
-  const hasSnapshot = Boolean(snapshot);
+  const latestSnapshot = snapshots[0] ?? null;
+  const hasSnapshot = Boolean(latestSnapshot);
 
   const handleSave = () => {
-    saveSnapshot(state);
+    setSaveModalOpen(true);
   };
 
   const handleLoad = () => {
-    if (snapshot) {
-      hydrate(snapshot.state);
+    setLoadModalOpen(true);
+  };
+
+  const handleConfirmSave = (name: string) => {
+    saveSnapshot(state, name.trim());
+    setSaveModalOpen(false);
+  };
+
+  const handleLoadSnapshot = (save: SaveFile) => {
+    hydrate(save.state);
+    setLoadModalOpen(false);
+  };
+
+  const handlePushToShore = () => {
+    if (!latestSnapshot) {
+      return;
+    }
+    if (state.mode === "menu") {
+      hydrate(latestSnapshot.state);
+    } else {
+      setConfirmModalOpen(true);
     }
   };
 
-  const handleRemoteSave = async () => {
-    await pushSnapshotToServer(state);
+  const handleConfirmLatest = () => {
+    if (latestSnapshot) {
+      hydrate(latestSnapshot.state);
+    }
+    setConfirmModalOpen(false);
+  };
+
+  const handleCancelConfirm = () => {
+    setConfirmModalOpen(false);
   };
 
   return (
@@ -130,7 +160,12 @@ function TopBar() {
           onClick={handleLoad}
           disabled={!hasSnapshot}
         />
-        <ToolbarButton icon={<Upload size={16} />} label={t("pushRemote")} onClick={handleRemoteSave} />
+        <ToolbarButton
+          icon={<Upload size={16} />}
+          label={t("pushRemote")}
+          onClick={handlePushToShore}
+          disabled={!hasSnapshot}
+        />
         <button
           onClick={toggleLocale}
           className="flex items-center gap-2 rounded-full border border-indigo-400/40 bg-indigo-500/15 px-3 py-1.5 text-xs uppercase tracking-widest text-indigo-100 transition hover:border-indigo-200/70 hover:bg-indigo-500/25"
@@ -139,6 +174,23 @@ function TopBar() {
           {locale.toUpperCase()}
         </button>
       </div>
+
+      <SaveModal
+        isOpen={isSaveModalOpen}
+        onClose={() => setSaveModalOpen(false)}
+        onConfirm={handleConfirmSave}
+      />
+      <LoadModal
+        isOpen={isLoadModalOpen}
+        onClose={() => setLoadModalOpen(false)}
+        saves={snapshots}
+        onSelect={handleLoadSnapshot}
+      />
+      <ConfirmLatestModal
+        isOpen={isConfirmModalOpen}
+        onCancel={handleCancelConfirm}
+        onConfirm={handleConfirmLatest}
+      />
     </div>
   );
 }

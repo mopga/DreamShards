@@ -10,11 +10,12 @@ import { useLocale } from "@/state/LocaleContext";
 export function MainMenu() {
   const { startNewGame, resetToMenu, hydrate, addLogEntry } = useGame();
   const { t } = useLocale();
-  const [snapshot, setSnapshot] = React.useState<SaveFile | null>(null);
+  const [snapshot, setSnapshot] = React.useState<SaveFile | null>(() => loadSnapshot());
 
   React.useEffect(() => {
-    setSnapshot(loadSnapshot());
-    const unsubscribe = subscribeToSnapshotChange(setSnapshot);
+    const unsubscribe = subscribeToSnapshotChange((saves) => {
+      setSnapshot(saves[0] ?? null);
+    });
     return unsubscribe;
   }, []);
 
