@@ -13,7 +13,8 @@
     "bootstrap:desktop": "node scripts/install-desktop-deps.mjs",
     "db:push": "drizzle-kit push --config server/drizzle.config.ts",
     "desktop:dev": "node scripts/ensure-desktop-deps.mjs && node scripts/run-desktop-script.mjs dev",
-    "desktop:build": "node scripts/ensure-desktop-deps.mjs && node scripts/run-desktop-script.mjs package"
+    "desktop:build": "node scripts/ensure-desktop-deps.mjs && node scripts/run-desktop-script.mjs package",
+    "desktop:buil": "npm run desktop:build"
   },
   "dependencies": {
     "@fontsource/inter": "^5.2.5",
