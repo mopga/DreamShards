@@ -11,6 +11,7 @@ client/              React front end (Vite, Tailwind, Zustand-free state)
   src/state/        Central game state, content dictionaries
 server/             Express server + Vite dev bridge
   src/routes/       API endpoints (`/api/save`, `/api/content/:key`)
+  src/services/     Cross-route services (content cache, etc.)
   src/db/           Drizzle schema + better-sqlite3 driver
 shared/             Cross-cutting types and JSON content
 ```
@@ -53,6 +54,8 @@ Starts the Express server (`server/src/index.ts`) via `tsx`. In development the 
 - Client entry: http://localhost:5000
 - API endpoints: http://localhost:5000/api/*
 
+The Express layer now includes structured request logging for all `/api/*` calls, trimming payload previews to 160 characters so terminal output remains readable during longer sessions.
+
 ### Production Build
 
 ```bash
@@ -88,6 +91,8 @@ npm run desktop:build
 
 Executes the full desktop pipeline: cleans previous artifacts, builds the renderer, compiles the `main` and `preload` scripts with `tsc`, and invokes `electron-builder` to produce distributables in `dist/`.
 
+> The command above has been exercised as part of the latest refactor to ensure the desktop release pipeline continues to succeed end-to-end.
+
 ### Standalone Build
 
 ```bash
@@ -118,6 +123,28 @@ Auto-save runs whenever the game state changes outside the menu. Manual save/loa
 
 - Schema: `server/src/db/schema.ts` (`saves` table).
 - Config: `server/drizzle.config.ts` (SQLite file stored at `server/dreamshards.db` by default).
+- Save endpoints are thin wrappers over Drizzle queries and accept an optional `limit` query string when listing saves (`GET /api/save?limit=10`). The limit is clamped between 1 and 25 and defaults to 5 to keep responses compact while still surfacing recent data quickly.
+- Shared content is streamed through `server/src/services/contentService.ts`, which caches parsed JSON in memory and automatically invalidates cached entries when the underlying files change on disk. This keeps frequently requested resources (enemy stats, palace layouts, etc.) fast without sacrificing live-reload friendliness during development.
+
+## API Reference
+
+### Saves
+
+- `POST /api/save`
+  - Body: `{ state: AppState }`.
+  - Validation: The payload is checked against a `zod` schema (`server/src/schemas/appState.ts`) so malformed snapshots are rejected with a 400 before they reach storage.
+  - Response: `{ ok: true, id: number }`.
+- `GET /api/save?limit=<1-25>`
+  - Optional `limit` query string controls how many records are returned (defaults to 5).
+  - Response: `{ ok: true, saves: SaveRecord[] }`.
+- `GET /api/save/:id`
+  - Response: `{ ok: true, save: SaveRecord }` when found, otherwise `{ ok: false, message: "not found" }` with a 404.
+
+### Content
+
+- `GET /api/content/:key`
+  - Serves JSON from `shared/content/<key>.json` for the allowed keys `skills`, `enemies`, `palaceFear`, and `dialogueBeach`.
+  - Responses are cached in memory per file mtime so repeated requests avoid disk reads while editing content locally automatically busts the cache.
 - Drizzle commands (examples):
   ```bash
   npx drizzle-kit generate
