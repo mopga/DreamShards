@@ -4,17 +4,28 @@ import { runNpmCommand } from './npm-command.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const defaultProjectRoot = resolve(__dirname, '..');
-
-const INSTALL_ARGS = ['install', '--prefix', 'desktop', '--production=false'];
+const SKIP_DESKTOP_BOOTSTRAP_ENV = 'DREAM_SHARDS_SKIP_DESKTOP_BOOTSTRAP';
+const INSTALL_ARGS = ['install', '--production=false'];
 
 export function installDesktopDependencies({ projectRoot = defaultProjectRoot } = {}) {
+  const desktopDir = resolve(projectRoot, 'desktop');
+
   return runNpmCommand(INSTALL_ARGS, {
-    cwd: projectRoot,
+    cwd: desktopDir,
     displayName: 'Desktop dependency installation',
+    env: {
+      ...process.env,
+      [SKIP_DESKTOP_BOOTSTRAP_ENV]: '1',
+    },
   });
 }
 
 async function runAsScript() {
+  if (process.env[SKIP_DESKTOP_BOOTSTRAP_ENV] === '1') {
+    console.log('Skipping desktop dependency installation (recursion guard active).');
+    return;
+  }
+
   try {
     await installDesktopDependencies({ projectRoot: defaultProjectRoot });
   } catch (error) {

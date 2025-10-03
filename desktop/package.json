@@ -20,7 +20,7 @@
   "devDependencies": {
     "concurrently": "^8.2.2",
     "cross-env": "^7.0.3",
-    "electron": "^33.2.1",
+    "electron": "28.3.3",
     "electron-builder": "^24.13.3",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",

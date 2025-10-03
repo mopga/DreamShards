@@ -10,14 +10,15 @@ export function runDesktopScript(scriptName, { projectRoot = defaultProjectRoot,
     return Promise.reject(new Error('A desktop npm script name must be provided.'));
   }
 
-  const commandArgs = ['run', scriptName, '--prefix', 'desktop', ...npmOptions];
+  const desktopDir = resolve(projectRoot, 'desktop');
+  const commandArgs = ['run', scriptName, ...npmOptions];
 
   if (scriptArgs.length > 0) {
     commandArgs.push('--', ...scriptArgs);
   }
 
   return runNpmCommand(commandArgs, {
-    cwd: projectRoot,
+    cwd: desktopDir,
     displayName: `Desktop script "${scriptName}"`,
   });
 }
