@@ -38,6 +38,24 @@ const createWindow = () => {
 };
 
 app.whenReady().then(() => {
+  app.on('web-contents-created', (_event, contents) => {
+    contents.once('dom-ready', () => {
+      if (!contents.getURL().startsWith('devtools://')) {
+        return;
+      }
+
+      contents.on('console-message', (event, level, message) => {
+        if (
+          level >= 2 &&
+          (message.includes("'Autofill.enable' wasn't found") ||
+            message.includes("'Autofill.setAddresses' wasn't found"))
+        ) {
+          event.preventDefault?.();
+        }
+      });
+    });
+  });
+
   createWindow();
 
   app.on('activate', () => {
