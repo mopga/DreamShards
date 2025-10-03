@@ -12,12 +12,15 @@ const moduleFilename =
 const moduleDirname =
   typeof __dirname === "string" ? __dirname : dirname(moduleFilename);
 
+const isDesktopBuild = process.env.VITE_BUILD_TARGET === "desktop";
+
 export default defineConfig({
   plugins: [
     react(),
     runtimeErrorOverlay(),
     glsl(), // Add GLSL shader support
   ],
+  base: isDesktopBuild ? "./" : "/",
   resolve: {
     alias: {
       "@": path.resolve(moduleDirname, "client", "src"),
