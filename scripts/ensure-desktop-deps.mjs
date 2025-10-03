@@ -1,7 +1,8 @@
 import { existsSync, rmSync } from 'fs';
 import { dirname, resolve } from 'path';
 import { fileURLToPath } from 'url';
-import { spawn, spawnSync } from 'child_process';
+import { spawnSync } from 'child_process';
+import { installDesktopDependencies } from './install-desktop-deps.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const projectRoot = resolve(__dirname, '..');
@@ -62,31 +63,11 @@ if (existsSync(desktopNodeModules)) {
   }
 }
 
-const npmExecPath = process.env.npm_execpath;
-let command = process.platform === 'win32' ? 'npm.cmd' : 'npm';
-let args = ['install', '--prefix', 'desktop', '--production=false'];
-
-if (npmExecPath?.endsWith('.js')) {
-  command = process.execPath;
-  args = [npmExecPath, ...args];
-}
-
-const install = spawn(command, args, {
-  cwd: projectRoot,
-  stdio: 'inherit',
-});
-
-install.on('error', (error) => {
+try {
+  await installDesktopDependencies({ projectRoot });
+  console.log('Desktop dependencies installed successfully.');
+  process.exit(0);
+} catch (error) {
   console.error('Failed to install desktop dependencies:', error);
-  process.exit(1);
-});
-
-install.on('exit', (code) => {
-  if (code === 0) {
-    console.log('Desktop dependencies installed successfully.');
-    process.exit(0);
-  }
-
-  console.error(`Desktop dependency installation exited with code ${code}.`);
-  process.exit(code ?? 1);
-});
+  process.exit(typeof error?.code === 'number' ? error.code : 1);
+}

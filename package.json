@@ -10,10 +10,10 @@
     "build:standalone:win": "node scripts/build-standalone.mjs",
     "check": "tsc",
     "postinstall": "npm run bootstrap:desktop",
-    "bootstrap:desktop": "npm install --prefix desktop --production=false",
+    "bootstrap:desktop": "node scripts/install-desktop-deps.mjs",
     "db:push": "drizzle-kit push --config server/drizzle.config.ts",
-    "desktop:dev": "node scripts/ensure-desktop-deps.mjs && npm run dev --prefix desktop",
-    "desktop:build": "node scripts/ensure-desktop-deps.mjs && npm run package --prefix desktop"
+    "desktop:dev": "node scripts/ensure-desktop-deps.mjs && node scripts/run-desktop-script.mjs dev",
+    "desktop:build": "node scripts/ensure-desktop-deps.mjs && node scripts/run-desktop-script.mjs package"
   },
   "dependencies": {
     "@fontsource/inter": "^5.2.5",
