@@ -9,7 +9,7 @@
     "typecheck": "tsc --build tsconfig.json",
     "dev": "concurrently -k \"npm:dev:renderer\" \"npm:dev:main\"",
     "dev:renderer": "vite dev --config ../vite.config.ts",
-    "dev:main": "wait-on tcp:5173 && cross-env NODE_OPTIONS=\"--loader ./scripts/tsconfig-paths-loader.mjs --no-warnings\" electron ./src/main/index.ts",
+    "dev:main": "wait-on tcp:5173 && cross-env TS_NODE_PROJECT=tsconfig.main.json NODE_OPTIONS=\"--no-warnings\" electron -r ts-node/register/transpile-only -r tsconfig-paths/register ./src/main/index.ts",
     "build": "npm run clean && npm run build:renderer && npm run copy:public && npm run build:main && npm run build:preload",
     "build:renderer": "vite build --config ../vite.config.ts",
     "copy:public": "node ./scripts/copy-public.cjs",
