@@ -32,6 +32,9 @@
       "dist/main/**/*",
       "dist/preload/**/*",
       "dist/public/**/*"
-    ]
+    ],
+    "win": {
+      "signAndEditExecutable": false
+    }
   }
 }
