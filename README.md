@@ -42,7 +42,7 @@ This installs both runtime and development dependencies (including `@types/bette
 ```bash
 npm run check
 ```
-Runs the TypeScript compiler (`tsc`) against the entire monorepo.
+Runs the TypeScript compiler (`tsc`) for the root project and then type-checks the Electron workspace under `desktop/`.
 
 ### Development (client + server)
 
@@ -61,7 +61,7 @@ The Express layer now includes structured request logging for all `/api/*` calls
 ```bash
 npm run build
 ```
-1. Builds the Vite client bundle into `client/dist`.
+1. Builds the Vite client bundle into `dist/public`.
 2. Bundles the Express server with esbuild into `dist/server/index.js`.
 
 ### Production Start
@@ -69,7 +69,7 @@ npm run build
 ```bash
 npm run start
 ```
-Runs the bundled Express server (`node dist/server/index.js`) which serves static assets from `server/public`.
+Runs the bundled Express server (`node dist/server/index.js`) which serves static assets from `dist/public`.
 
 ### Desktop Application
 
@@ -118,6 +118,7 @@ The resulting folder contains the executable (`DreamShards.exe` on Windows, `Dre
 5. **Ending** – post-boss epilogue reflects shard count and key decisions.
 
 Auto-save runs whenever the game state changes outside the menu. Manual save/load buttons in the top bar call `localStorage`, and `Push to Shore` sends a snapshot to `/api/save` for future persistence work.
+Auto-save runs whenever the game state changes outside the menu. Manual save/load buttons in the top bar call `localStorage`. The "Push to Shore" button currently restores the latest snapshot (with a confirmation when leaving an active run); wiring it to the remote save endpoint is still TODO.
 
 ## Drizzle ORM & Database
 
@@ -159,8 +160,11 @@ Auto-save runs whenever the game state changes outside the menu. Manual save/loa
 
 ## Known Issues / TODOs
 
-- `npm audit` reports low/moderate vulnerabilities from upstream packages (see install output).
-- UI currently uses placeholder art hooks (`client/src/assets/README.md`).
-- Remote persistence only stores raw snapshots; retrieval endpoints remain TODO.
+- `npm audit` may report moderate/high vulnerabilities from upstream packages (see install output); treat as a dependency hygiene backlog item.
+- UI still uses placeholder art hooks (`client/src/assets/README.md`).
+- Remote persistence is not wired into the UI yet:
+  - Client has `pushSnapshotToServer()` (`client/src/features/save/saveSystem.ts`).
+  - Server accepts `POST /api/save` and supports listing/lookup (`GET /api/save`, `GET /api/save/:id`).
+  - The top bar "Push to Shore" action currently restores the latest local snapshot instead of calling the API.
 
 Feel free to expand content JSON or add additional palaces by extending the shared schema and client state dictionaries.

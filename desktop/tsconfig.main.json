@@ -5,7 +5,7 @@
     "moduleResolution": "Node",
     "lib": ["ES2022", "DOM"],
     "strict": true,
-    "types": ["electron", "node"],
+    "types": ["node"],
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
 

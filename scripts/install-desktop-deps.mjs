@@ -6,7 +6,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const defaultProjectRoot = resolve(__dirname, '..');
 const SKIP_DESKTOP_BOOTSTRAP_ENV = 'DREAM_SHARDS_SKIP_DESKTOP_BOOTSTRAP';
 
-const INSTALL_ARGS = ['install', '--prefix', 'desktop', '--production=false'];
+const INSTALL_ARGS = ['install', '--production=false'];
 
 export function installDesktopDependencies({ projectRoot = defaultProjectRoot } = {}) {
   const desktopDir = resolve(projectRoot, 'desktop');
