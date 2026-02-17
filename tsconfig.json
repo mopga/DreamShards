@@ -3,8 +3,7 @@
   "include": [
     "client/src/**/*",
     "shared/**/*",
-    "server/**/*",
-    "desktop/src/**/*"
+    "server/**/*"
   ],
   "exclude": [
     "node_modules",
