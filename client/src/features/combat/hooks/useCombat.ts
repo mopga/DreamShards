@@ -1,6 +1,7 @@
 ﻿import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createCombatState } from "../logic/state";
 import { resolveAction } from "../logic/resolver";
+import { chooseEnemyAction } from "../logic/ai";
 import type {
   CombatAction,
   CombatCommand,
@@ -101,7 +102,6 @@ export function useCombat(): UseCombatResult {
       messages: lastMessages,
       rewards: encounter.reward,
     });
-    logTelemetry(combat);
   }, [combat, encounter, resolveEncounter]);
 
   const synchroniseInventory = useCallback(
@@ -185,8 +185,8 @@ export function useCombat(): UseCombatResult {
     }
 
     aiTimeoutRef.current = window.setTimeout(() => {
-      const action = chooseEnemyAction(combat);
-      if (action) execute(action);
+      const result = chooseEnemyAction({ state: combat, skills: skillsMap });
+      if (result.action) execute(result.action);
     }, 420);
 
     return () => {
@@ -326,83 +326,6 @@ function preparePartyActors(
     return clone;
   });
 }
-
-
-
-function chooseEnemyAction(state: CombatState): CombatAction | null {
-  const activeId = state.activeActorId;
-  if (!activeId) return null;
-  const attacker = state.entities[activeId];
-  if (!attacker || attacker.side !== "enemy" || !isAlive(attacker)) return null;
-
-  const opponents = Object.values(state.entities).filter(
-    (entity) => entity.side === "ally" && isAlive(entity),
-  );
-  if (!opponents.length) return null;
-
-  const usableSkills = attacker.actor.skills
-    .map((id) => skillsMap[id])
-    .filter((skill): skill is NonNullable<typeof skill> => Boolean(skill))
-    .filter((skill) => attacker.currentSP >= skill.costSP);
-
-  const singleTarget = usableSkills.find((skill) => skill.targets === "one");
-  if (singleTarget) {
-    const target = chooseLowestHP(opponents);
-    return {
-      type: "skill",
-      sourceId: attacker.id,
-      skillId: singleTarget.id,
-      targetIds: [target.id],
-    };
-  }
-
-  const aoe = usableSkills.find((skill) => skill.targets === "all");
-  if (aoe) {
-    return {
-      type: "skill",
-      sourceId: attacker.id,
-      skillId: aoe.id,
-      targetIds: opponents.map((entity) => entity.id),
-    };
-  }
-
-  const target = chooseLowestHP(opponents);
-  return {
-    type: "attack",
-    sourceId: attacker.id,
-    targetId: target.id,
-  };
-}
-
-function chooseLowestHP(candidates: CombatState["entities"][string][]) {
-  return candidates.reduce((lowest, entity) => {
-    if (!lowest) return entity;
-    const lowestPct = lowest.currentHP / lowest.actor.stats.maxHP;
-    const currentPct = entity.currentHP / entity.actor.stats.maxHP;
-    return currentPct < lowestPct ? entity : lowest;
-  });
-}
-
-function logTelemetry(state: CombatState) {
-  const { telemetry } = state;
-  const summary = {
-    rounds: state.round,
-    turnsTaken: telemetry.turnsTaken,
-    weaknessHits: telemetry.weaknessHits,
-    extraTurns: telemetry.extraTurns,
-    guardsUsed: telemetry.guardsUsed,
-    targetCancels: telemetry.targetCancels,
-    fpsSpikes: telemetry.fpsSpikes,
-  };
-  if (typeof window !== "undefined") {
-    console.table(summary);
-  } else {
-    // eslint-disable-next-line no-console
-    console.log("Combat telemetry", summary);
-  }
-}
-
-
 
 
 

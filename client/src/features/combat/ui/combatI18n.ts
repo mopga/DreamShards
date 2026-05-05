@@ -15,6 +15,8 @@ type CombatLocale = {
   queue: string;
   bonusTurn: string;
   logTitle: string;
+  telemetryTitle: string;
+  telemetry: Record<"rounds" | "turnsTaken" | "weaknessHits" | "extraTurns" | "guardsUsed" | "targetCancels" | "fpsSpikes", string>;
   commands: Record<"attack" | "skills" | "items" | "guard" | "end" | "back", string>;
   tooltips: Record<"waiting" | "noSkillTarget" | "noSp" | "noItems" | "targetInvalid" | "extraTurn", string>;
   statuses: Record<"vulnerable" | "weakened" | "guarded", string>;
@@ -33,6 +35,16 @@ const combatLocale: Record<"en" | "ru", CombatLocale> = {
     queue: "Queue",
     bonusTurn: "Bonus Turn",
     logTitle: "Battle Log",
+    telemetryTitle: "Combat Stats",
+    telemetry: {
+      rounds: "Rounds",
+      turnsTaken: "Turns Taken",
+      weaknessHits: "Weakness Hits",
+      extraTurns: "Extra Turns",
+      guardsUsed: "Guards Used",
+      targetCancels: "Target Cancels",
+      fpsSpikes: "FPS Spikes",
+    },
     commands: {
       attack: "Attack",
       skills: "Skills",
@@ -129,6 +141,16 @@ const combatLocale: Record<"en" | "ru", CombatLocale> = {
     queue: "Очередь",
     bonusTurn: "Бонусный ход",
     logTitle: "Журнал боя",
+    telemetryTitle: "Статистика боя",
+    telemetry: {
+      rounds: "Раунды",
+      turnsTaken: "Ходов сделано",
+      weaknessHits: "Слабых мест",
+      extraTurns: "Доп. ходов",
+      guardsUsed: "Защит",
+      targetCancels: "Сбросов цели",
+      fpsSpikes: "Просадок FPS",
+    },
     commands: {
       attack: "Атака",
       skills: "Навыки",

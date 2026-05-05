@@ -8,6 +8,8 @@ export interface Skill {
   power: number;
   targets: 'one' | 'all';
   applies?: Array<'weakened' | 'vulnerable' | 'guarded'>;
+  clears?: Array<'weakened' | 'vulnerable' | 'guarded'>;
+  healsSelf?: number;
   description: string;
 }
 

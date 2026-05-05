@@ -10,6 +10,7 @@ import {
   getAllSnapshots,
   saveSnapshot,
   subscribeToSnapshotChange,
+  pushSnapshotToServer,
   type SaveFile,
 } from "@/features/save/saveSystem";
 import { WorldIntro } from "@/features/intro/WorldIntro";
@@ -18,8 +19,9 @@ import { BeachArrival } from "@/features/intro/BeachArrival";
 import { HeroNameModal } from "@/features/hero/HeroNameModal";
 import { useLocale, LocaleProvider, TranslationKey } from "@/state/LocaleContext";
 import { progressionLevels } from "@/state/content";
-import { Save, Upload, Download, Languages } from "lucide-react";
+import { Save, Upload, Download, Languages, Volume2, VolumeX } from "lucide-react";
 import { SaveModal, LoadModal, ConfirmLatestModal } from "@/features/save/SaveModals";
+import { useAudio } from "@/audio";
 
 export default function App() {
   return (
@@ -34,6 +36,7 @@ export default function App() {
 function DreamShell() {
   const { state, acknowledgeSkillUnlock } = useGame();
   const { t } = useLocale();
+  const { playBGM } = useAudio();
 
   useEffect(() => {
     if (state.mode === "menu" || state.mode === "intro_world" || state.mode === "intro_birth" || state.mode === "intro_beach" || state.mode === "naming") {
@@ -41,6 +44,20 @@ function DreamShell() {
     }
     saveSnapshot(state);
   }, [state]);
+
+  // Play BGM on mode change
+  useEffect(() => {
+    const track = (() => {
+      switch (state.mode) {
+        case "menu": return "menu";
+        case "exploration": return "exploration";
+        case "combat": return "combat";
+        case "dialogue": return "dialogue";
+        default: return null;
+      }
+    })();
+    if (track) playBGM(track);
+  }, [state.mode, playBGM]);
 
   const showTopBar = !["intro_world", "intro_birth", "intro_beach", "naming"].includes(state.mode);
   const pendingUnlock = state.skillUnlockQueue?.[0];
@@ -77,10 +94,13 @@ function DreamShell() {
 function TopBar() {
   const { state, hydrate } = useGame();
   const { t, toggleLocale, locale } = useLocale();
+  const { isMuted, toggleMute } = useAudio();
   const [snapshots, setSnapshots] = React.useState<SaveFile[]>(() => getAllSnapshots());
   const [isSaveModalOpen, setSaveModalOpen] = React.useState(false);
   const [isLoadModalOpen, setLoadModalOpen] = React.useState(false);
   const [isConfirmModalOpen, setConfirmModalOpen] = React.useState(false);
+  const [isPushing, setIsPushing] = React.useState(false);
+  const [pushFeedback, setPushFeedback] = React.useState<string>("");
   const modeKey = (`mode_${state.mode}`) as TranslationKey;
   const modeLabel = t(modeKey);
   const shardsLabel = t("shardsLabel");
@@ -119,7 +139,7 @@ function TopBar() {
   };
 
   const handlePushToShore = () => {
-    if (!latestSnapshot) {
+    if (!latestSnapshot || isPushing) {
       return;
     }
     if (state.mode === "menu") {
@@ -129,11 +149,22 @@ function TopBar() {
     }
   };
 
-  const handleConfirmLatest = () => {
-    if (latestSnapshot) {
-      hydrate(latestSnapshot.state);
+  const handleConfirmLatest = async () => {
+    if (!latestSnapshot || isPushing) {
+      return;
     }
+    setIsPushing(true);
+    setPushFeedback("");
     setConfirmModalOpen(false);
+    try {
+      await pushSnapshotToServer(state);
+      setPushFeedback(t("pushSuccess") || "Saved to shore");
+    } catch {
+      setPushFeedback(t("pushFailure") || "Push failed");
+    } finally {
+      setIsPushing(false);
+      setTimeout(() => setPushFeedback(""), 3000);
+    }
   };
 
   const handleCancelConfirm = () => {
@@ -164,8 +195,18 @@ function TopBar() {
           icon={<Upload size={16} />}
           label={t("pushRemote")}
           onClick={handlePushToShore}
-          disabled={!hasSnapshot}
+          disabled={!hasSnapshot || isPushing}
         />
+        {pushFeedback ? (
+          <span className="text-xs text-indigo-300">{pushFeedback}</span>
+        ) : null}
+        <button
+          onClick={toggleMute}
+          className="flex items-center gap-2 rounded-full border border-indigo-400/40 bg-indigo-500/15 px-3 py-1.5 text-xs uppercase tracking-widest text-indigo-100 transition hover:border-indigo-200/70 hover:bg-indigo-500/25"
+        >
+          {isMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
+          {locale.toUpperCase()}
+        </button>
         <button
           onClick={toggleLocale}
           className="flex items-center gap-2 rounded-full border border-indigo-400/40 bg-indigo-500/15 px-3 py-1.5 text-xs uppercase tracking-widest text-indigo-100 transition hover:border-indigo-200/70 hover:bg-indigo-500/25"

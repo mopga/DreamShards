@@ -24,6 +24,8 @@ export type TranslationKey =
   | "saveLocal"
   | "loadLocal"
   | "pushRemote"
+  | "pushSuccess"
+  | "pushFailure"
   | "saveModalTitle"
   | "saveModalDescription"
   | "saveNameLabel"
@@ -101,6 +103,8 @@ const translations: Record<Locale, Record<TranslationKey, string>> = {
     saveLocal: "Save Local",
     loadLocal: "Load Local",
     pushRemote: "Push to Shore",
+    pushSuccess: "Saved to shore",
+    pushFailure: "Push failed",
     saveModalTitle: "Create Save",
     saveModalDescription: "Name this moment so you can return to it later.",
     saveNameLabel: "Save Name",
@@ -177,6 +181,8 @@ const translations: Record<Locale, Record<TranslationKey, string>> = {
     saveLocal: "\u0421\u043e\u0445\u0440\u0430\u043d\u0438\u0442\u044c",
     loadLocal: "\u0417\u0430\u0433\u0440\u0443\u0437\u0438\u0442\u044c",
     pushRemote: "\u0412\u044b\u043d\u0435\u0441\u0442\u0438 \u043a \u0431\u0435\u0440\u0435\u0433\u0443",
+    pushSuccess: "\u0421\u043e\u0445\u0440\u0430\u043d\u0435\u043d\u043e",
+    pushFailure: "\u041e\u0448\u0438\u0431\u043a\u0430 \u0441\u043e\u0445\u0440\u0430\u043d\u0435\u043d\u0438\u044f",
     saveModalTitle: "\u041d\u043e\u0432\u043e\u0435 \u0441\u043e\u0445\u0440\u0430\u043d\u0435\u043d\u0438\u0435",
     saveModalDescription: "\u0414\u0430\u0439 \u0438\u043c\u044f \u044d\u0442\u043e\u043c\u0443 \u043c\u0433\u043d\u043e\u0432\u0435\u043d\u0438\u044e, \u0447\u0442\u043e\u0431\u044b \u0432\u0435\u0440\u043d\u0443\u0442\u044c\u0441\u044f \u043a \u043d\u0435\u043c\u0443 \u043f\u043e\u0437\u0436\u0435.",
     saveNameLabel: "\u041d\u0430\u0437\u0432\u0430\u043d\u0438\u0435",

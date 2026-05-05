@@ -139,6 +139,45 @@ function handleSkill(
 
   source.currentSP = Math.max(0, source.currentSP - skill.costSP);
 
+  // Handle self-cleansing skill (cast on self)
+  if (skill.clears) {
+    const targetSelf = targetIds.includes(source.id);
+    if (targetSelf) {
+      skill.clears.forEach((status) => {
+        removeStatus(source, status as CombatStatus);
+        events.push(
+          createEvent("RemoveStatus", {
+            targetId: source.id,
+            status: status as CombatStatus,
+          }),
+        );
+      });
+    }
+  }
+
+  // Handle self-heal skill
+  if (skill.healsSelf) {
+    const targetSelf = targetIds.includes(source.id);
+    if (targetSelf) {
+      const before = source.currentHP;
+      source.currentHP = Math.min(
+        source.actor.stats.maxHP,
+        source.currentHP + skill.healsSelf!,
+      );
+      const delta = source.currentHP - before;
+      if (delta > 0) {
+        events.push(
+          createEvent("Heal", {
+            sourceId: source.id,
+            targetId: source.id,
+            amount: delta,
+            message: "combat.events.heal",
+          }),
+        );
+      }
+    }
+  }
+
   if (skill.targets === "one") {
     const target = state.entities[targetIds[0] ?? ""];
     if (target) {

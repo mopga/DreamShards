@@ -7,10 +7,12 @@ import { TurnQueuePanel } from "./components/TurnQueuePanel";
 import { CommandPanel } from "./components/CommandPanel";
 import { BattleLog } from "./components/BattleLog";
 import { SkillTooltip } from "./components/SkillTooltip";
+import { CombatTelemetryPanel } from "./CombatTelemetryPanel";
 import { useCombatCopy } from "./combatI18n";
 import { skills as skillsMap } from "@/state/content";
 import type { CombatState } from "../logic/types";
 import type { Skill } from "@shared/types";
+import { useAudio } from "@/audio";
 
 export function CombatScene() {
   const combat = useCombat();
@@ -18,6 +20,7 @@ export function CombatScene() {
   const { state, inventory } = combat;
   const turnQueue = useTurnQueue(state);
   const [hoveredSkill, setHoveredSkill] = useState<string | null>(null);
+  const { playSFX } = useAudio();
 
   const targeting = useTargeting({
     combat: state,
@@ -93,6 +96,42 @@ export function CombatScene() {
     return () => window.removeEventListener("keydown", handleKey);
   }, [playerTurn, state, targeting, combat]);
 
+  // Play SFX based on combat events
+  useEffect(() => {
+    if (!state || !state.lastEvents.length) return;
+    const last = state.lastEvents[state.lastEvents.length - 1];
+    if (!last) return;
+    switch (last.type) {
+      case "Hit": {
+        const hit = last as Extract<typeof last, { type: "Hit" }>;
+        if (hit.isWeakness) {
+          playSFX("weakness");
+        } else {
+          playSFX("hit");
+        }
+        break;
+      }
+      case "WeaknessTriggered":
+        playSFX("weakness");
+        break;
+      case "Death":
+        playSFX("death");
+        break;
+      case "Guard":
+        playSFX("guard");
+        break;
+      case "Heal":
+        playSFX("heal");
+        break;
+      case "ItemUsed":
+        playSFX("skill");
+        break;
+      case "StartRound":
+        playSFX("skill");
+        break;
+    }
+  }, [state?.lastEvents, playSFX]);
+
   if (!combat.ready || !state) {
     return <p className="p-8 text-center text-slate-200">{copy.loading}</p>;
   }
@@ -123,9 +162,13 @@ export function CombatScene() {
       />
 
       <div className="flex flex-col gap-4">
-        <div className="min-h-[120px]">
-          <SkillTooltip skill={hoveredSkill ? skillsMap[hoveredSkill] : undefined} />
-        </div>
+        {state.ended && state.telemetry ? (
+          <CombatTelemetryPanel telemetry={state.telemetry} rounds={state.round} />
+        ) : (
+          <div className="min-h-[120px]">
+            <SkillTooltip skill={hoveredSkill ? skillsMap[hoveredSkill] : undefined} />
+          </div>
+        )}
         <BattleLog events={state.eventsLog} entities={state.entities} />
       </div>
     </div>

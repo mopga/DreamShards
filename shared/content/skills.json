@@ -1,4 +1,4 @@
-﻿[
+[
   {
     "id": "luminous_strike",
     "name": "Luminous Strike",
@@ -83,5 +83,26 @@
     "targets": "all",
     "applies": ["weakened"],
     "description": "Synchronized pulse with a trusted companion, rattling all foes."
+  },
+  {
+    "id": "shadow_heal",
+    "name": "Shadow Mending",
+    "costSP": 5,
+    "element": "void",
+    "power": 0,
+    "targets": "one",
+    "healsSelf": 30,
+    "clears": ["weakened", "vulnerable"],
+    "description": "Draws on nightmare essence to mend wounds and dispel lingering doubts."
+  },
+  {
+    "id": "ward_of_pain",
+    "name": "Ward of Pain",
+    "costSP": 4,
+    "element": "void",
+    "power": 0.8,
+    "targets": "one",
+    "applies": ["guarded"],
+    "description": "Conjures a barrier of shared suffering around an ally."
   }
 ]
